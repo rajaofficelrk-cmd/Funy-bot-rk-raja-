@@ -1,7 +1,7 @@
 import os
 import random
-import requests
 
+import requests
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 
@@ -12,31 +12,33 @@ load_dotenv()
 
 app = Flask(__name__)
 
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "change-this")
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "")
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN", "")
 OWNER_ID = os.getenv("OWNER_ID", "")
 GRAPH_API_VERSION = os.getenv("GRAPH_API_VERSION", "v23.0")
 
-RK_RAJA_IMAGE_URL = os.getenv("RK_RAJA_IMAGE_URL", "")
 GROUP_LINK = os.getenv(
     "GROUP_LINK",
     "https://t.me/Akatsuki_rulex"
 )
 
+RK_RAJA_IMAGE_URL = os.getenv("RK_RAJA_IMAGE_URL", "")
+
+# AppState is accepted only as configuration text.
+# It is NOT used for Facebook login/session automation.
+FBSTATE = ""
+
 BOT_ENABLED = True
 
 
-RK_RAJA_MESSAGE = f"""🌙᯾LEGEND_FT_BOY•ϯ
+RK_RAJA_MESSAGE = f"""🌙᯾🙂𝐁ɽ፝֟ɵ͜͡ƙ⃟ɛ͠ɳ💔ϯ•🕊️𝐇ɘ፝֟͜͡ʌ̴ʀ⃞ʈ🩷•ϯ
 
 Joine my gc Rk raja Family
 {GROUP_LINK}"""
 
 
 def graph_url(path):
-    return (
-        f"https://graph.facebook.com/"
-        f"{GRAPH_API_VERSION}/{path}"
-    )
+    return f"https://graph.facebook.com/{GRAPH_API_VERSION}/{path}"
 
 
 def send_text(recipient_id, text):
@@ -57,7 +59,7 @@ def send_text(recipient_id, text):
     }
 
     try:
-        response = requests.post(
+        r = requests.post(
             url,
             json=payload,
             timeout=20
@@ -65,19 +67,22 @@ def send_text(recipient_id, text):
 
         print(
             "SEND TEXT:",
-            response.status_code,
-            response.text
+            r.status_code,
+            r.text
         )
 
-        return response.ok
+        return r.ok
 
-    except requests.RequestException as exc:
-        print("Send error:", exc)
+    except requests.RequestException as e:
+        print("SEND TEXT ERROR:", e)
         return False
 
 
 def send_image(recipient_id, image_url):
-    if not PAGE_ACCESS_TOKEN or not image_url:
+    if not PAGE_ACCESS_TOKEN:
+        return False
+
+    if not image_url:
         return False
 
     url = graph_url("me/messages")
@@ -99,7 +104,7 @@ def send_image(recipient_id, image_url):
     }
 
     try:
-        response = requests.post(
+        r = requests.post(
             url,
             json=payload,
             timeout=20
@@ -107,21 +112,26 @@ def send_image(recipient_id, image_url):
 
         print(
             "SEND IMAGE:",
-            response.status_code,
-            response.text
+            r.status_code,
+            r.text
         )
 
-        return response.ok
+        return r.ok
 
-    except requests.RequestException as exc:
-        print("Image error:", exc)
+    except requests.RequestException as e:
+        print("SEND IMAGE ERROR:", e)
         return False
 
 
 def is_rk_raja(text):
-    normalized = " ".join(
-        text.lower().strip().split()
+    normalized = (
+        text
+        .lower()
+        .strip()
+        .replace("_", " ")
     )
+
+    normalized = " ".join(normalized.split())
 
     return (
         "rk raja" in normalized
@@ -132,35 +142,43 @@ def is_rk_raja(text):
 def owner_command(sender_id, text):
     global BOT_ENABLED
 
-    if not OWNER_ID or str(sender_id) != str(OWNER_ID):
+    if not OWNER_ID:
+        return False
+
+    if str(sender_id) != str(OWNER_ID):
         return False
 
     command = text.strip().lower()
 
     if command == "/bot off":
         BOT_ENABLED = False
+
         send_text(
             sender_id,
-            "🛑 Bot OFF kar diya gaya hai, Owner."
+            "🛑 𝐑𝐊 𝐑𝐚𝐣𝐚 𝐁𝐨𝐭 𝐎𝐅𝐅 kar diya gaya hai, Owner."
         )
+
         return True
 
     if command == "/bot on":
         BOT_ENABLED = True
+
         send_text(
             sender_id,
-            "✅ Bot ON kar diya gaya hai, Owner."
+            "✅ 𝐑𝐊 𝐑𝐚𝐣𝐚 𝐁𝐨𝐭 𝐎𝐍 kar diya gaya hai, Owner."
         )
+
         return True
 
     return False
 
 
 def handle_message(sender_id, text):
+
     if not text:
         return
 
-    # Owner controls
+    # Owner ON/OFF
     if owner_command(sender_id, text):
         return
 
@@ -168,7 +186,7 @@ def handle_message(sender_id, text):
     if not BOT_ENABLED:
         return
 
-    # RK Raja special trigger
+    # RK Raja trigger
     if is_rk_raja(text):
 
         if RK_RAJA_IMAGE_URL:
@@ -184,10 +202,9 @@ def handle_message(sender_id, text):
 
         return
 
-    # Normal user conversation
+    # Normal funny response
     reply = generate_reply(text)
 
-    # Stylish English words occasionally
     if random.random() < 0.35:
         reply = stylish_text(reply)
 
@@ -244,7 +261,8 @@ def webhook_receive():
     for entry in data.get("entry", []):
 
         for messaging in entry.get(
-            "messaging", []
+            "messaging",
+            []
         ):
 
             sender = messaging.get(
@@ -262,6 +280,7 @@ def webhook_receive():
             text = message.get("text")
 
             if sender_id and text:
+
                 handle_message(
                     sender_id,
                     text
@@ -272,16 +291,80 @@ def webhook_receive():
 
 @app.route("/api/status")
 def api_status():
+
     return jsonify({
         "bot": "RK Raja Bot",
         "enabled": BOT_ENABLED,
-        "owner_configured": bool(OWNER_ID)
+        "owner_configured": bool(OWNER_ID),
+        "page_token_configured": bool(
+            PAGE_ACCESS_TOKEN
+        ),
+        "fbstate_field": True
+    })
+
+
+@app.route("/api/fbstate", methods=["POST"])
+def save_fbstate():
+
+    global FBSTATE
+
+    data = request.get_json(
+        silent=True
+    ) or {}
+
+    value = data.get(
+        "fbstate",
+        ""
+    )
+
+    if not isinstance(value, str):
+        return jsonify({
+            "ok": False,
+            "error": "Invalid AppState"
+        }), 400
+
+    # Keep it in server memory only.
+    # Never print it or expose it through /api/status.
+    FBSTATE = value.strip()
+
+    return jsonify({
+        "ok": True,
+        "message": "AppState field received safely."
+    })
+
+
+@app.route("/api/reply", methods=["POST"])
+def api_reply():
+
+    data = request.get_json(
+        silent=True
+    ) or {}
+
+    text = str(
+        data.get("text", "")
+    ).strip()
+
+    if not text:
+        return jsonify({
+            "ok": False,
+            "error": "Text required"
+        }), 400
+
+    reply = generate_reply(text)
+
+    return jsonify({
+        "ok": True,
+        "reply": reply
     })
 
 
 if __name__ == "__main__":
+
     port = int(
-        os.getenv("PORT", "5000")
+        os.getenv(
+            "PORT",
+            "5000"
+        )
     )
 
     app.run(
