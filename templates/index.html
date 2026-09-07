@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>RK Raja Bot</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#0d1117;
+    color:white;
+}
+
+header{
+    text-align:center;
+    padding:28px 15px;
+    background:#171d27;
+}
+
+header h1{
+    margin:0;
+    font-size:32px;
+}
+
+header p{
+    color:#bfc7d4;
+}
+
+main{
+    max-width:700px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:#171d27;
+    padding:20px;
+    margin-bottom:18px;
+    border-radius:18px;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    border:0;
+    border-radius:10px;
+    box-sizing:border-box;
+    background:#252d39;
+    color:white;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    border:0;
+    border-radius:10px;
+    font-weight:bold;
+}
+
+#reply{
+    margin-top:15px;
+    padding:15px;
+    border-radius:12px;
+    background:#252d39;
+    white-space:pre-line;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🤖 RK Raja Bot</h1>
+    <p>❤️ Romantic • 😂 Funny • ✨ Shayari • 🎬 GIF</p>
+</header>
+
+<main>
+
+<div class="card">
+
+<h2>💬 Test Bot</h2>
+
+<input
+    id="message"
+    placeholder="love you / baby / joke / shayari..."
+>
+
+<button onclick="replyBot()">
+    Send 💬
+</button>
+
+<div id="reply">
+    RK Raja ka reply yahan aayega ❤️
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>✨ Features</h2>
+
+<p>❤️ Romantic replies</p>
+<p>😂 Funny jokes</p>
+<p>✨ Shayari</p>
+<p>🔤 Stylish Unicode fonts</p>
+<p>🎬 GIF-ready system</p>
+<p>🤖 Bot detection</p>
+<p>☀️ Good Morning</p>
+<p>🌙 Good Night</p>
+
+</div>
+
+</main>
+
+<script>
+async function replyBot(){
+
+    const input=document.getElementById("message");
+    const output=document.getElementById("reply");
+
+    if(!input.value.trim()){
+        output.innerText="Pehle kuch likho 😜";
+        return;
+    }
+
+    output.innerText="RK Raja soch raha hai... 😎";
+
+    try{
+
+        const r=await fetch("/api/reply",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                message:input.value
+            })
+        });
+
+        const data=await r.json();
+
+        output.innerText=data.reply;
+
+    }catch(e){
+
+        output.innerText="Server error 😕";
+    }
+}
+</script>
+
+</body>
+</html>
