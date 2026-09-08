@@ -2,64 +2,82 @@ import os
 import time
 import requests
 
-from threading import Lock
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
+
+from replies import generate_reply
 
 load_dotenv()
 
 app = Flask(__name__)
 
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "")
+STARTED_AT = time.time()
+
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "change-this")
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN", "")
 GRAPH_API_VERSION = os.getenv("GRAPH_API_VERSION", "v23.0")
 
+BOT_ENABLED = os.getenv("BOT_ENABLED", "true").lower() == "true"
 ADMIN_ID = os.getenv("OWNER_ID", "")
-
 GROUP_LINK = os.getenv(
     "GROUP_LINK",
     "https://t.me/Akatsuki_rulex"
 )
 
-BOT_ENABLED = (
-    os.getenv("BOT_ENABLED", "true").lower() == "true"
-)
-
-START_TIME = time.time()
-
-LOCK = Lock()
-
 LIVE_USERS = {}
 LOGS = []
 
 CONFIG = {
+    "admin_id": ADMIN_ID,
     "fight_file": "",
-    "appstate_configured": False
+    "appstate_configured": False,
 }
 
 
-# =========================================================
-# LOG
-# =========================================================
+# -------------------------
+# LOGGING
+# -------------------------
 
-def add_log(text):
-    with LOCK:
-        LOGS.insert(0, {
-            "time": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "text": text
-        })
+def add_log(message):
+    LOGS.insert(0, {
+        "time": time.strftime("%H:%M:%S"),
+        "message": str(message)
+    })
 
-        del LOGS[100:]
+    del LOGS[100:]
 
 
-# =========================================================
-# MESSENGER SEND
-# =========================================================
+# -------------------------
+# USER TRACKING
+# -------------------------
 
-def send_text(uid, text):
+def track_user(sender_id, text):
+    now = time.strftime("%Y-%m-%d %H:%M:%S")
+
+    user = LIVE_USERS.setdefault(
+        sender_id,
+        {
+            "messages": 0,
+            "last_message": "",
+            "last_seen": ""
+        }
+    )
+
+    user["messages"] += 1
+    user["last_message"] = text[:200]
+    user["last_seen"] = now
+
+
+# -------------------------
+# SEND MESSAGE
+# -------------------------
+
+def send_text(recipient_id, text):
 
     if not PAGE_ACCESS_TOKEN:
-        add_log("❌ PAGE_ACCESS_TOKEN missing")
+        add_log(
+            "Reply skipped: Page Access Token is not configured."
+        )
         return False
 
     url = (
@@ -69,7 +87,7 @@ def send_text(uid, text):
 
     payload = {
         "recipient": {
-            "id": uid
+            "id": recipient_id
         },
         "message": {
             "text": text
@@ -85,335 +103,110 @@ def send_text(uid, text):
                 "access_token": PAGE_ACCESS_TOKEN
             },
             json=payload,
-            timeout=20
+            timeout=15
         )
 
-        add_log(
-            f"📤 SEND {uid} | HTTP {response.status_code}"
+        success = (
+            200 <= response.status_code < 300
         )
 
-        if not response.ok:
+        if success:
             add_log(
-                f"❌ Meta: {response.text[:300]}"
+                f"✅ Message sent -> {recipient_id}"
+            )
+        else:
+            add_log(
+                f"❌ Send failed -> "
+                f"{response.status_code}"
             )
 
-        return response.ok
+        return success
 
-    except Exception as e:
+    except requests.RequestException as exc:
 
         add_log(
-            f"❌ Send error: {str(e)}"
+            f"❌ Send error: {exc}"
         )
 
         return False
 
 
-# =========================================================
-# LIVE USER TRACKING
-# =========================================================
-
-def track_user(uid, text):
-
-    with LOCK:
-
-        old = LIVE_USERS.get(uid, {})
-
-        LIVE_USERS[uid] = {
-            "uid": uid,
-            "messages": old.get("messages", 0) + 1,
-            "last_message": text[:150],
-            "last_seen": time.strftime(
-                "%Y-%m-%d %H:%M:%S"
-            ),
-            "status": "LIVE"
-        }
-
-
-# =========================================================
-# REPLY ENGINE
-# =========================================================
-
-def make_reply(text):
-
-    t = text.strip().lower()
-
-    # HELP
-    if t in {
-        "help",
-        "commands",
-        "/help"
-    }:
-        return (
-            "🤖 RK RAJA BOT\n\n"
-            "💬 Normal message → automatic reply\n\n"
-            "📚 Commands:\n"
-            "help\n"
-            "joke\n"
-            "love\n"
-            "baby\n"
-            "babu\n"
-            "sona\n"
-            "shona\n"
-            "jaan\n"
-            "janu\n"
-            "sad\n"
-            "bye\n"
-            "good morning\n"
-            "good afternoon\n"
-            "good evening\n"
-            "good night"
-        )
-
-    # GREETINGS
-    if t in {
-        "hi",
-        "hii",
-        "hiii",
-        "hello",
-        "hey",
-        "helo"
-    }:
-        return (
-            "👀 Haan bolo 😌\n"
-            "RK Raja Bot sun raha hai ❤️"
-        )
-
-    # MORNING
-    if "good morning" in t:
-        return (
-            "🌅 Good Morning ❤️\n"
-            "Aaj ka din mast rahe 😌"
-        )
-
-    # AFTERNOON
-    if "good afternoon" in t:
-        return (
-            "☀️ Good Afternoon 😌\n"
-            "Kya haal hai?"
-        )
-
-    # EVENING
-    if "good evening" in t:
-        return (
-            "🌆 Good Evening ❤️\n"
-            "Batao kya chal raha hai 😌"
-        )
-
-    # NIGHT
-    if "good night" in t:
-        return (
-            "🌙 Good Night 😴❤️\n"
-            "Sweet dreams!"
-        )
-
-    # BYE
-    if t == "bye" or t.startswith("bye "):
-        return "Bye ❤️ Phir milte hain 😌"
-
-    # BOT BOT BOT
-    if t.split().count("bot") >= 3:
-        return (
-            "😒 Sun raha hoon, "
-            "behra nahi hoon main 😂"
-        )
-
-    # BOT
-    if "bot" in t:
-        return random_bot_reply()
-
-    # RK RAJA
-    if "rk raja" in t:
-        return (
-            "🌙᯾🙂𝐁ɽ፝֟ɵ͜͡ƙ⃟ɛ͠ɳ💔ϯ•"
-            "🕊️𝐇ɘ፝֟͜͡ʌ̴ʀ⃞ʈ🩷•ϯ\n\n"
-            "Joine my gc Rk raja Family\n"
-            f"{GROUP_LINK}"
-        )
-
-    # LOVE NAMES
-    if t in {
-        "baby",
-        "babu",
-        "sona",
-        "shona",
-        "jaan",
-        "janu"
-    }:
-        return (
-            "😏 Haan bolo ❤️\n"
-            "Itne pyaar se bula rahe ho "
-            "toh sunna padega 😌"
-        )
-
-    # LOVE
-    if t in {
-        "love",
-        "pyaar",
-        "pyar"
-    }:
-        return (
-            "❤️ Pyaar wali baat hai toh "
-            "araam se bolo 😌"
-        )
-
-    # JOKE
-    if t in {
-        "joke",
-        "jokes"
-    }:
-        return (
-            "😂 Teacher: Homework kahan hai?\n"
-            "Student: Sir, network problem thi 📶🤣"
-        )
-
-    # SAD
-    if t in {
-        "sad",
-        "dukhi",
-        "udaas"
-    }:
-        return (
-            "🥺 Kya hua?\n"
-            "Bolo, main sun raha hoon ❤️"
-        )
-
-    # THANKS
-    if (
-        "thank" in t
-        or "thanks" in t
-    ):
-        return "😊 Welcome ❤️"
-
-    # SORRY
-    if "sorry" in t:
-        return "😌 Koi baat nahi ❤️"
-
-    # SLEEP
-    if "sleep" in t or "so ja" in t:
-        return (
-            "😴 Haan jao ab,\n"
-            "kal phir baat karenge ❤️"
-        )
-
-    # FOOD
-    if any(x in t for x in [
-        "khana",
-        "food",
-        "bhookh",
-        "kha liya"
-    ]):
-        return (
-            "🍕 Khana kha liya ya "
-            "sirf bot ko message kar rahe ho? 😂"
-        )
-
-    # DEFAULT
-    return (
-        "👀 Achhaaa...\n"
-        "Batao aur kya chal raha hai? 😌\n"
-        "RK Raja Bot sun raha hai ❤️"
-    )
-
-
-def random_bot_reply():
-
-    import random
-
-    replies = [
-        "👀 Haan bolo, RK RAJA sun raha hai 😌",
-        "😂 Haan bhai, sun raha hoon.",
-        "😏 Kya hua? Itne pyaar se BOT kyun bula rahe ho?",
-        "🤣 Bot yahin hai, bolo kya kaam hai?",
-        "👂 Sun raha hoon bhai, behra nahi hoon 😜",
-        "🙄 Haan bolo, attendance laga rahe ho kya? 😂",
-        "😏 RK RAJA yahin hai, baar-baar BOT bolne ki zarurat nahi."
-    ]
-
-    return random.choice(replies)
-
-
-# =========================================================
+# -------------------------
 # DASHBOARD
-# =========================================================
+# -------------------------
 
 @app.get("/")
 def dashboard():
-
-    return render_template(
-        "index.html"
-    )
+    return render_template("index.html")
 
 
-# =========================================================
-# HEALTH
-# =========================================================
+# -------------------------
+# HEALTH CHECK
+# -------------------------
 
 @app.get("/health")
 def health():
 
     return jsonify({
-        "online": True,
+        "status": "online",
         "bot_enabled": BOT_ENABLED,
-        "admin_id": ADMIN_ID
+        "uptime_seconds": int(
+            time.time() - STARTED_AT
+        )
     })
 
 
-# =========================================================
+# -------------------------
 # STATUS API
-# =========================================================
+# -------------------------
 
 @app.get("/api/status")
 def status():
 
-    with LOCK:
+    users = [
+        {
+            "uid": uid,
+            **data
+        }
+        for uid, data
+        in list(LIVE_USERS.items())[:100]
+    ]
 
-        users = list(
-            LIVE_USERS.values()
-        )
-
-        logs = list(
-            LOGS[:50]
-        )
+    total_messages = sum(
+        user["messages"]
+        for user in LIVE_USERS.values()
+    )
 
     return jsonify({
 
         "online": True,
 
-        "bot_enabled":
-            BOT_ENABLED,
+        "enabled": BOT_ENABLED,
 
-        "admin_id":
-            ADMIN_ID,
+        "uptime_seconds": int(
+            time.time() - STARTED_AT
+        ),
 
-        "messages":
-            sum(
-                u["messages"]
-                for u in users
-            ),
+        "users": len(LIVE_USERS),
 
-        "live_users":
-            users,
+        "messages": total_messages,
 
-        "logs":
-            logs,
+        "admin_id": CONFIG["admin_id"],
 
-        "fight_file":
-            CONFIG["fight_file"],
+        "fight_file": CONFIG["fight_file"],
 
         "appstate_configured":
             CONFIG["appstate_configured"],
 
-        "uptime":
-            int(
-                time.time() -
-                START_TIME
-            )
+        "users_data": users,
+
+        "logs": LOGS[:50]
     })
 
 
-# =========================================================
+# -------------------------
 # START / STOP
-# =========================================================
+# -------------------------
 
 @app.post("/api/bot/<action>")
 def bot_action(action):
@@ -430,7 +223,7 @@ def bot_action(action):
 
         return jsonify({
             "ok": True,
-            "bot_enabled": True
+            "enabled": True
         })
 
     if action == "stop":
@@ -443,18 +236,18 @@ def bot_action(action):
 
         return jsonify({
             "ok": True,
-            "bot_enabled": False
+            "enabled": False
         })
 
     return jsonify({
         "ok": False,
-        "error": "Invalid action"
+        "error": "Unknown action"
     }), 400
 
 
-# =========================================================
+# -------------------------
 # ADMIN UID
-# =========================================================
+# -------------------------
 
 @app.post("/api/admin")
 def save_admin():
@@ -468,24 +261,17 @@ def save_admin():
         or {}
     )
 
-    admin_id = str(
+    ADMIN_ID = str(
         data.get(
             "admin_id",
             ""
         )
     ).strip()
 
-    if not admin_id:
-
-        return jsonify({
-            "ok": False,
-            "error": "Admin UID required"
-        }), 400
-
-    ADMIN_ID = admin_id
+    CONFIG["admin_id"] = ADMIN_ID
 
     add_log(
-        "👤 Admin UID updated"
+        "👑 Admin UID updated"
     )
 
     return jsonify({
@@ -494,9 +280,9 @@ def save_admin():
     })
 
 
-# =========================================================
+# -------------------------
 # DASHBOARD CONFIG
-# =========================================================
+# -------------------------
 
 @app.post("/api/config")
 def save_config():
@@ -508,49 +294,41 @@ def save_config():
         or {}
     )
 
-    # AppState is NOT stored.
-    # Only whether the UI field is non-empty
-    # is recorded.
-
-    if "appstate" in data:
-
-        CONFIG[
-            "appstate_configured"
-        ] = bool(
-            str(
-                data["appstate"]
-            ).strip()
+    CONFIG["fight_file"] = str(
+        data.get(
+            "fight_file",
+            ""
         )
+    ).strip()
 
-    if "fight_file" in data:
-
-        CONFIG[
-            "fight_file"
-        ] = str(
-            data["fight_file"]
-        )[:200]
+    # AppState is only kept as a
+    # dashboard configuration value.
+    CONFIG["appstate_configured"] = bool(
+        str(
+            data.get(
+                "appstate",
+                ""
+            )
+        ).strip()
+    )
 
     add_log(
-        "⚙️ Dashboard configuration updated"
+        "⚙️ Dashboard configuration saved"
     )
 
     return jsonify({
         "ok": True,
-        "appstate_configured":
-            CONFIG[
-                "appstate_configured"
-            ],
-        "fight_file":
-            CONFIG["fight_file"]
+        "config": CONFIG
     })
 
 
-# =========================================================
+# -------------------------
 # META WEBHOOK VERIFY
-# =========================================================
+# -------------------------
 
 @app.get("/webhook")
-def webhook_verify():
+@app.get("/webhook/")
+def verify_webhook():
 
     mode = request.args.get(
         "hub.mode"
@@ -567,22 +345,19 @@ def webhook_verify():
     if (
         mode == "subscribe"
         and token == VERIFY_TOKEN
-        and challenge
     ):
-        return challenge, 200
+        return challenge or ""
 
-    return (
-        "Verification failed",
-        403
-    )
+    return "Forbidden", 403
 
 
-# =========================================================
-# META MESSENGER WEBHOOK
-# =========================================================
+# -------------------------
+# META WEBHOOK EVENTS
+# -------------------------
 
 @app.post("/webhook")
-def webhook_receive():
+@app.post("/webhook/")
+def webhook():
 
     data = (
         request.get_json(
@@ -590,20 +365,6 @@ def webhook_receive():
         )
         or {}
     )
-
-    if data.get("object") != "page":
-
-        return (
-            "EVENT_RECEIVED",
-            200
-        )
-
-    if not BOT_ENABLED:
-
-        return (
-            "EVENT_RECEIVED",
-            200
-        )
 
     for entry in data.get(
         "entry",
@@ -615,15 +376,15 @@ def webhook_receive():
             []
         ):
 
-            uid = (
+            sender_id = (
                 event
                 .get("sender", {})
                 .get("id")
             )
 
-            message = (
-                event
-                .get("message", {})
+            message = event.get(
+                "message",
+                {}
             )
 
             text = message.get(
@@ -631,38 +392,40 @@ def webhook_receive():
                 ""
             )
 
-            if not uid or not text:
+            if not sender_id:
                 continue
 
-            text = text.strip()
+            if not text:
+                continue
 
             track_user(
-                uid,
+                sender_id,
                 text
             )
 
             add_log(
-                f"📩 {uid}: {text}"
+                f"📩 {sender_id}: {text}"
             )
 
-            reply = make_reply(
+            if not BOT_ENABLED:
+                continue
+
+            reply = generate_reply(
                 text
             )
 
-            send_text(
-                uid,
-                reply
-            )
+            if reply:
+                send_text(
+                    sender_id,
+                    reply
+                )
 
-    return (
-        "EVENT_RECEIVED",
-        200
-    )
+    return "EVENT_RECEIVED", 200
 
 
-# =========================================================
+# -------------------------
 # LOCAL START
-# =========================================================
+# -------------------------
 
 if __name__ == "__main__":
 
@@ -673,8 +436,22 @@ if __name__ == "__main__":
         )
     )
 
+    print(
+        "🤖 RK RAJA BOT STARTING..."
+    )
+
+    print(
+        "✅ BOT ONLINE"
+    )
+
+    print(
+        "♻️ BOT WILL KEEP RUNNING "
+        "WHILE HOST PROCESS IS ALIVE"
+    )
+
     app.run(
         host="0.0.0.0",
         port=port,
-        debug=False
-)
+        debug=False,
+        threaded=True
+    )
