@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
+
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0">
 
@@ -15,194 +17,245 @@
 }
 
 body {
+
     margin: 0;
+
     min-height: 100vh;
+
     font-family: Arial, sans-serif;
+
     color: white;
+
     background:
         radial-gradient(
             circle at top,
-            #164d25,
-            #06140a 45%,
-            #020503
+            #174f2b,
+            #03170b 70%
         );
-    overflow-x: hidden;
-}
 
-body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-        radial-gradient(
-            white 1px,
-            transparent 1px
-        );
-    background-size: 55px 55px;
-    opacity: .25;
+    padding: 20px;
 }
 
 .container {
-    width: min(1100px, 94%);
+
+    max-width: 900px;
+
     margin: auto;
-    padding: 30px 0;
 }
 
-.hero {
+.title {
+
     text-align: center;
-    padding: 30px;
-    border-radius: 25px;
-    background: rgba(255,255,255,.08);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(255,255,255,.15);
-    box-shadow:
-        0 0 30px rgba(0,255,100,.15);
-}
 
-.hero h1 {
-    margin: 0;
-    font-size: clamp(28px, 6vw, 55px);
+    font-size: 32px;
+
     font-weight: 900;
-    animation: rgb 4s linear infinite;
+
+    animation: rgb 3s infinite;
+
 }
 
 @keyframes rgb {
+
     0% {
-        text-shadow:
-            0 0 10px #ff0055,
-            0 0 25px #ff0055;
+        color: #00ff66;
     }
 
     33% {
-        text-shadow:
-            0 0 10px #00ffff,
-            0 0 25px #00ffff;
+        color: #00ffff;
     }
 
     66% {
-        text-shadow:
-            0 0 10px #8cff00,
-            0 0 25px #8cff00;
+        color: #ff66ff;
     }
 
     100% {
-        text-shadow:
-            0 0 10px #ff0055,
-            0 0 25px #ff0055;
+        color: #00ff66;
     }
 }
 
-.hero p {
-    opacity: .8;
-}
+.subtitle {
 
-.grid {
-    display: grid;
-    grid-template-columns:
-        repeat(auto-fit, minmax(280px, 1fr));
-    gap: 18px;
-    margin-top: 20px;
+    text-align: center;
+
+    opacity: .7;
+
+    margin-bottom: 25px;
 }
 
 .card {
-    padding: 22px;
+
+    margin-bottom: 16px;
+
+    padding: 20px;
+
     border-radius: 20px;
-    background: rgba(255,255,255,.07);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255,255,255,.13);
+
+    background:
+        rgba(20,60,35,.75);
+
+    border:
+        1px solid
+        rgba(255,255,255,.15);
+
+    backdrop-filter: blur(12px);
+
+    box-shadow:
+        0 10px 35px
+        rgba(0,0,0,.35);
 }
 
-.card h2 {
-    margin-top: 0;
+.grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(140px,1fr)
+        );
+
+    gap: 12px;
 }
 
-.full {
-    grid-column: 1 / -1;
+.stat {
+
+    text-align: center;
+
+    padding: 15px;
+
+    border-radius: 16px;
+
+    background:
+        rgba(0,0,0,.2);
 }
 
-.status {
-    display: inline-block;
-    padding: 8px 14px;
-    border-radius: 30px;
-    background: rgba(0,255,100,.15);
-    border: 1px solid rgba(0,255,100,.4);
+.label {
+
+    font-size: 13px;
+
+    opacity: .65;
 }
 
-textarea,
-input {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,.2);
-    background: rgba(0,0,0,.35);
-    color: white;
-    outline: none;
-    margin: 8px 0 14px;
+.value {
+
+    margin-top: 7px;
+
+    font-size: 24px;
+
+    font-weight: bold;
 }
 
-textarea {
-    resize: vertical;
+.online {
+
+    color: #00ff78;
+}
+
+.buttons {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
 }
 
 button {
-    padding: 12px 18px;
-    margin: 5px;
+
     border: 0;
+
     border-radius: 12px;
+
+    padding: 13px 18px;
+
+    font-weight: bold;
+
     cursor: pointer;
-    font-weight: 800;
 }
 
-.on {
-    background: #22c55e;
+.start {
+
+    background: #00d66b;
+
+    color: #001b0c;
+}
+
+.stop {
+
+    background: #ff465c;
+
     color: white;
 }
 
-.off {
-    background: #ef4444;
-    color: white;
+.lock {
+
+    background: #ffb52e;
+
+    color: #201400;
 }
 
-.save {
-    background: #38bdf8;
-    color: white;
+.unlock {
+
+    background: #36c5ff;
+
+    color: #00151d;
 }
 
-.test {
-    background: #a855f7;
-    color: white;
+.info {
+
+    line-height: 1.7;
+
+    opacity: .9;
 }
 
-.note {
-    font-size: 13px;
-    opacity: .7;
-    line-height: 1.5;
-}
+input {
 
-.reply {
-    margin-top: 15px;
-    padding: 15px;
-    border-radius: 12px;
-    background: rgba(0,0,0,.3);
-    min-height: 45px;
-}
+    width: 100%;
 
-.command {
-    padding: 10px;
-    margin: 6px 0;
+    padding: 13px;
+
+    margin: 10px 0;
+
     border-radius: 10px;
-    background: rgba(255,255,255,.06);
+
+    border: 1px solid
+        rgba(255,255,255,.2);
+
+    background:
+        rgba(0,0,0,.25);
+
+    color: white;
+
+    outline: none;
 }
 
-a {
-    color: #7dd3fc;
+.tags {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
 }
 
-footer {
-    text-align: center;
-    opacity: .6;
-    padding: 30px 0;
+.tag {
+
+    padding: 9px 12px;
+
+    border-radius: 20px;
+
+    background:
+        rgba(0,255,120,.12);
+
+    border: 1px solid
+        rgba(0,255,120,.2);
+}
+
+pre {
+
+    white-space: pre-wrap;
+
+    word-break: break-word;
 }
 
 </style>
@@ -213,354 +266,468 @@ footer {
 
 <div class="container">
 
-<section class="hero">
+<h1 class="title">
+RK RAJA BOT PANEL
+</h1>
 
-<h1>✨ RK RAJA BOT PANEL ✨</h1>
-
-<p>
-Your Ultimate Facebook Bot Control Center
-</p>
-
-<div class="status">
-Status:
-<strong id="status">
-Checking...
-</strong>
+<div class="subtitle">
+Messenger Auto Reply Dashboard
 </div>
 
-</section>
 
+<!-- DASHBOARD -->
+
+<div class="card">
+
+<h2>📊 LIVE DASHBOARD</h2>
 
 <div class="grid">
 
+<div class="stat">
+<div class="label">BOT</div>
+<div id="bot"
+     class="value online">
+RUNNING
+</div>
+</div>
 
-<section class="card">
+<div class="stat">
+<div class="label">SERVER</div>
+<div id="server"
+     class="value online">
+ONLINE
+</div>
+</div>
 
-<h2>🤖 Bot Status</h2>
+<div class="stat">
+<div class="label">MESSAGES</div>
+<div id="messages"
+     class="value">
+0
+</div>
+</div>
 
-<p>
-Current status:
-<strong id="botStatus">
-Loading...
-</strong>
-</p>
+<div class="stat">
+<div class="label">REPLIES</div>
+<div id="replies"
+     class="value">
+0
+</div>
+</div>
 
-<button class="on"
-        onclick="botOn()">
-    🟢 BOT ON
+<div class="stat">
+<div class="label">USERS</div>
+<div id="users"
+     class="value">
+0
+</div>
+</div>
+
+<div class="stat">
+<div class="label">LOCKED</div>
+<div id="locked"
+     class="value">
+0
+</div>
+</div>
+
+<div class="stat">
+<div class="label">ERRORS</div>
+<div id="errors"
+     class="value">
+0
+</div>
+</div>
+
+<div class="stat">
+<div class="label">WEBHOOK</div>
+<div id="webhook"
+     class="value online">
+READY
+</div>
+</div>
+
+</div>
+
+</div>
+
+
+<!-- BOT CONTROL -->
+
+<div class="card">
+
+<h2>🤖 BOT CONTROL</h2>
+
+<div class="buttons">
+
+<button class="start"
+        onclick="botControl('start')">
+▶ START BOT
 </button>
 
-<button class="off"
-        onclick="botOff()">
-    🔴 BOT OFF
+<button class="stop"
+        onclick="botControl('stop')">
+⏹ STOP BOT
 </button>
 
-<p class="note">
-Facebook messages mein /bot on aur /bot off
-sirf configured Owner ID se work karenge.
-</p>
+</div>
 
-</section>
+</div>
 
 
-<section class="card">
+<!-- USER LOCK -->
 
-<h2>🔐 Facebook AppState</h2>
+<div class="card">
 
-<label>
-Facebook AppState / fbstate:
-</label>
+<h2>🔒 USER MESSAGE LOCK</h2>
 
-<textarea
-    id="fbstate"
-    rows="7"
-    placeholder="Paste AppState JSON here..."
-    autocomplete="off"
-    spellcheck="false">
-</textarea>
-
-<button class="save"
-        onclick="saveFbstate()">
-    💾 SAVE APPSTATE
-</button>
-
-<p class="note">
-⚠️ Session/AppState sensitive data hota hai.
-Ye panel ise Facebook personal-account login
-automation ke liye use nahi karta.
-</p>
-
-</section>
-
-
-<section class="card">
-
-<h2>😂 Funny Reply Test</h2>
+<div class="info">
+User ID enter karke us user ke automatic replies
+LOCK/UNLOCK kar sakte ho.
+</div>
 
 <input
-    id="testText"
-    placeholder="Example: hello baby 😜">
+    id="userId"
+    placeholder="Messenger User ID"
+>
 
-<button class="test"
-        onclick="testReply()">
-    😂 TEST REPLY
+<div class="buttons">
+
+<button class="lock"
+        onclick="userControl('lock')">
+🔒 LOCK USER
 </button>
 
-<div class="reply"
-     id="reply">
-    Reply yahan show hoga...
+<button class="unlock"
+        onclick="userControl('unlock')">
+🔓 UNLOCK USER
+</button>
+
 </div>
 
-</section>
-
-
-<section class="card">
-
-<h2>🔥 Features</h2>
-
-<div class="command">
-😂 Funny Replies
 </div>
 
-<div class="command">
-❤️ Love / Baby Replies
+
+<!-- REPLY TYPES -->
+
+<div class="card">
+
+<h2>💬 AUTO REPLY SYSTEM</h2>
+
+<div class="tags">
+
+<span class="tag">👋 Hello</span>
+<span class="tag">😂 Funny</span>
+<span class="tag">🥰 Cute</span>
+<span class="tag">❤️ Love</span>
+<span class="tag">😜 Flirty</span>
+<span class="tag">🔥 Naughty Style</span>
+<span class="tag">😎 Attitude</span>
+<span class="tag">🥀 Sad</span>
+<span class="tag">✍️ Shayari</span>
+<span class="tag">🍕 Food</span>
+<span class="tag">😴 Sleep</span>
+<span class="tag">🙏 Thanks</span>
+<span class="tag">😡 Angry</span>
+<span class="tag">👋 Bye</span>
+
 </div>
 
-<div class="command">
-🌹 Shayari
 </div>
 
-<div class="command">
-😜 Roast Replies
-</div>
 
-<div class="command">
-✨ Stylish Unicode Text
-</div>
+<!-- USER INFO -->
 
-<div class="command">
-🖼️ RK Raja Image Trigger
-</div>
+<div class="card">
 
-<div class="command">
-👑 Owner ON/OFF
-</div>
+<h2>👤 USER INFO</h2>
 
-</section>
+<div class="info">
 
+User Messenger mein:
 
-<section class="card">
-
-<h2>👑 Owner Commands</h2>
-
-<div class="command">
-/bot on
-</div>
-
-<div class="command">
-/bot off
-</div>
-
-<p class="note">
-Only configured OWNER_ID can use these
-Facebook commands.
-</p>
-
-</section>
-
-
-<section class="card">
-
-<h2>🖼️ RK Raja Trigger</h2>
-
-<p>
-When someone says:
-</p>
-
-<strong>
-RK Raja
-</strong>
-
-<p>
-Bot sends configured image and:
-</p>
-
-<div class="reply">
-🌙᯾🙂𝐁ɽ፝֟ɵ͜͡ƙ⃟ɛ͠ɳ💔ϯ•🕊️𝐇ɘ፝֟͜͡ʌ̴ʀ⃞ʈ🩷•ϯ
 <br><br>
-Joine my gc Rk raja Family
+
+<b>/info</b>
+
+<br><br>
+
+bhejega to bot us user ka:
+
 <br>
+
+⭐ Level<br>
+✨ XP<br>
+💬 Message count<br>
+🔐 Lock status<br>
+✍️ Random shayari
+
+show karega.
+
+</div>
+
+</div>
+
+
+<!-- ACTIVITY -->
+
+<div class="card">
+
+<h2>📡 LIVE ACTIVITY</h2>
+
+<div class="info">
+
+<b>Last Message:</b>
+
+<pre id="lastMessage">
+Waiting...
+</pre>
+
+<b>Last Reply:</b>
+
+<pre id="lastReply">
+Waiting...
+</pre>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>👑 RK RAJA TRIGGER</h2>
+
+<div class="info">
+
+User agar <b>RK Raja</b> bolega,
+configured image + RK Raja Family message
+automatically send hoga.
+
+<br><br>
+
 https://t.me/Akatsuki_rulex
-</div>
-
-</section>
-
-
-<section class="card full">
-
-<h2>👥 RK Raja Family</h2>
-
-<p>
-Join the group:
-</p>
-
-<a
-    href="https://t.me/Akatsuki_rulex"
-    target="_blank">
-    🚀 Join RK Raja Family
-</a>
-
-</section>
-
 
 </div>
 
+</div>
 
-<footer>
-© 2026 RK Raja Bot • Made with ❤️
-</footer>
 
 </div>
 
 
 <script>
 
-async function loadStatus() {
+let ownerKey = "";
+
+function getOwnerKey() {
+
+    if (!ownerKey) {
+
+        ownerKey = prompt(
+            "Owner ID enter karo:"
+        ) || "";
+    }
+
+    return ownerKey;
+}
+
+
+async function botControl(action) {
+
+    const key = getOwnerKey();
+
+    if (!key)
+        return;
+
+    const response =
+        await fetch(
+            "/api/bot/" + action,
+            {
+                method: "POST",
+                headers: {
+                    "X-Owner-Key": key
+                }
+            }
+        );
+
+    const data =
+        await response.json();
+
+    if (!data.ok) {
+
+        alert(
+            "❌ " +
+            (data.error || "Failed")
+        );
+
+        ownerKey = "";
+
+        return;
+    }
+
+    updateDashboard();
+}
+
+
+async function userControl(action) {
+
+    const key = getOwnerKey();
+
+    if (!key)
+        return;
+
+    const userId =
+        document.getElementById(
+            "userId"
+        ).value.trim();
+
+    if (!userId) {
+
+        alert(
+            "User ID enter karo."
+        );
+
+        return;
+    }
+
+    const response =
+        await fetch(
+            "/api/user/" + action,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+
+                    "X-Owner-Key":
+                        key
+                },
+
+                body: JSON.stringify({
+                    user_id: userId
+                })
+            }
+        );
+
+    const data =
+        await response.json();
+
+    if (!data.ok) {
+
+        alert(
+            "❌ " +
+            (data.error || "Failed")
+        );
+
+        ownerKey = "";
+
+        return;
+    }
+
+    alert(
+        action === "lock"
+            ? "🔒 User locked"
+            : "🔓 User unlocked"
+    );
+
+    updateDashboard();
+}
+
+
+async function updateDashboard() {
 
     try {
 
         const response =
-            await fetch("/api/status");
+            await fetch(
+                "/api/status",
+                {
+                    cache: "no-store"
+                }
+            );
 
         const data =
             await response.json();
 
-        document.getElementById(
-            "botStatus"
-        ).textContent =
-            data.enabled
-            ? "🟢 ONLINE"
-            : "🔴 OFF";
 
         document.getElementById(
-            "status"
+            "bot"
         ).textContent =
-            data.enabled
-            ? "🟢 ONLINE"
-            : "🔴 OFF";
+            data.status;
 
-    } catch (error) {
 
         document.getElementById(
-            "status"
+            "messages"
         ).textContent =
-            "❌ ERROR";
+            data.messages_received;
+
+
+        document.getElementById(
+            "replies"
+        ).textContent =
+            data.replies_sent;
+
+
+        document.getElementById(
+            "users"
+        ).textContent =
+            data.users;
+
+
+        document.getElementById(
+            "locked"
+        ).textContent =
+            data.locked_users;
+
+
+        document.getElementById(
+            "errors"
+        ).textContent =
+            data.errors;
+
+
+        document.getElementById(
+            "webhook"
+        ).textContent =
+            data.webhook;
+
+
+        document.getElementById(
+            "lastMessage"
+        ).textContent =
+            data.last_message ||
+            "Waiting...";
+
+
+        document.getElementById(
+            "lastReply"
+        ).textContent =
+            data.last_reply ||
+            "Waiting...";
+
+    }
+
+    catch (error) {
+
+        document.getElementById(
+            "server"
+        ).textContent =
+            "OFFLINE";
     }
 }
 
 
-async function testReply() {
-
-    const text =
-        document.getElementById(
-            "testText"
-        ).value;
-
-    if (!text.trim()) {
-        return;
-    }
-
-    const response =
-        await fetch(
-            "/api/reply",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-                body: JSON.stringify({
-                    text: text
-                })
-            }
-        );
-
-    const data =
-        await response.json();
-
-    document.getElementById(
-        "reply"
-    ).textContent =
-        data.reply ||
-        data.error ||
-        "No reply";
-}
-
-
-async function saveFbstate() {
-
-    const value =
-        document.getElementById(
-            "fbstate"
-        ).value;
-
-    if (!value.trim()) {
-        alert(
-            "AppState paste karo."
-        );
-        return;
-    }
-
-    const response =
-        await fetch(
-            "/api/fbstate",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-                body: JSON.stringify({
-                    fbstate: value
-                })
-            }
-        );
-
-    const data =
-        await response.json();
-
-    alert(
-        data.message ||
-        data.error ||
-        "Done"
-    );
-}
-
-
-function botOn() {
-
-    alert(
-        "Owner ON/OFF control Facebook ke /bot on command se use karein."
-    );
-}
-
-
-function botOff() {
-
-    alert(
-        "Owner ON/OFF control Facebook ke /bot off command se use karein."
-    );
-}
-
-
-loadStatus();
+updateDashboard();
 
 setInterval(
-    loadStatus,
-    5000
+    updateDashboard,
+    3000
 );
 
 </script>
 
 </body>
+
 </html>
