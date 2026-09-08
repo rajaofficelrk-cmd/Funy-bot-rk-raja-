@@ -1,440 +1,518 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RK RAJA BOT</title>
 
-<meta charset="UTF-8">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0b0f19;
+            color: #fff;
+        }
 
-<title>RK Raja Bot</title>
+        .header {
+            padding: 20px;
+            background: #111827;
+            border-bottom: 1px solid #263044;
+        }
 
-<style>
+        .header h1 {
+            margin: 0;
+            font-size: 25px;
+        }
 
-* {
-    box-sizing: border-box;
-}
+        .header p {
+            margin: 6px 0 0;
+            color: #9ca3af;
+        }
 
-body {
-    margin: 0;
-    background: #080b14;
-    color: white;
-    font-family: Arial, sans-serif;
-}
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 20px;
+        }
 
-.container {
-    width: 100%;
-    max-width: 1100px;
-    margin: auto;
-    padding: 18px;
-}
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
 
-h1 {
-    margin-bottom: 3px;
-}
+        .card {
+            background: #111827;
+            border: 1px solid #263044;
+            border-radius: 15px;
+            padding: 18px;
+        }
 
-.card {
-    background: #111725;
-    border: 1px solid #273149;
-    border-radius: 18px;
-    padding: 18px;
-    margin: 15px 0;
-}
+        .card small {
+            color: #9ca3af;
+        }
 
-.grid {
-    display: grid;
-    grid-template-columns:
-        repeat(auto-fit, minmax(210px, 1fr));
-    gap: 12px;
-}
+        .value {
+            margin-top: 8px;
+            font-size: 25px;
+            font-weight: bold;
+        }
 
-.stat {
-    background: #0b101c;
-    padding: 15px;
-    border-radius: 13px;
-}
+        .online {
+            color: #22c55e;
+        }
 
-.stat-title {
-    color: #9ca8bf;
-    font-size: 13px;
-}
+        .offline {
+            color: #ef4444;
+        }
 
-.stat-value {
-    font-size: 22px;
-    font-weight: bold;
-    margin-top: 5px;
-}
+        .panel {
+            margin-top: 20px;
+            background: #111827;
+            border: 1px solid #263044;
+            border-radius: 15px;
+            padding: 20px;
+        }
 
-input,
-textarea,
-button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 8px;
-    border-radius: 10px;
-    border: 1px solid #35415e;
-    background: #080d18;
-    color: white;
-}
+        .panel h2 {
+            margin-top: 0;
+        }
 
-textarea {
-    min-height: 120px;
-    resize: vertical;
-}
+        input {
+            width: 100%;
+            padding: 13px;
+            margin: 7px 0 12px;
+            border: 1px solid #374151;
+            border-radius: 10px;
+            background: #0b0f19;
+            color: white;
+            outline: none;
+        }
 
-button {
-    cursor: pointer;
-    font-weight: bold;
-}
+        button {
+            border: 0;
+            padding: 12px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 4px;
+        }
 
-.start {
-    background: #123d27;
-}
+        .start {
+            background: #22c55e;
+            color: #06110a;
+        }
 
-.stop {
-    background: #451c25;
-}
+        .stop {
+            background: #ef4444;
+            color: white;
+        }
 
-.save {
-    background: #243b67;
-}
+        .save {
+            background: #3b82f6;
+            color: white;
+        }
 
-.badge {
-    display: inline-block;
-    padding: 8px 14px;
-    border-radius: 20px;
-    background: #1b2940;
-}
+        .log {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #080c14;
+            border-radius: 10px;
+            padding: 10px;
+        }
 
-.small {
-    color: #9da9c2;
-    font-size: 12px;
-    line-height: 1.6;
-}
+        .log-item {
+            padding: 9px;
+            border-bottom: 1px solid #1f2937;
+            font-size: 13px;
+        }
 
-.warning {
-    color: #ffca70;
-    font-size: 12px;
-    margin-top: 8px;
-}
+        .user {
+            padding: 12px;
+            margin: 7px 0;
+            background: #0b0f19;
+            border-radius: 10px;
+            border: 1px solid #1f2937;
+        }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
-}
+        .user-id {
+            font-weight: bold;
+        }
 
-th,
-td {
-    padding: 10px;
-    border-bottom: 1px solid #283147;
-    text-align: left;
-    font-size: 12px;
-}
+        .muted {
+            color: #9ca3af;
+            font-size: 13px;
+        }
 
-.log {
-    background: #080d17;
-    padding: 9px;
-    margin: 5px 0;
-    border-radius: 8px;
-    font-size: 12px;
-    word-break: break-word;
-}
-
-</style>
-
+        .warning {
+            color: #fbbf24;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+    </style>
 </head>
 
 <body>
 
+<div class="header">
+    <h1>🤖 RK RAJA BOT</h1>
+    <p>Messenger Bot Dashboard</p>
+</div>
+
 <div class="container">
 
-<h1>🤖 RK Raja Bot</h1>
+    <div class="cards">
 
-<div class="small">
-Messenger Auto Bot Dashboard
-</div>
+        <div class="card">
+            <small>Bot Status</small>
+            <div id="botStatus" class="value">Loading...</div>
+        </div>
 
+        <div class="card">
+            <small>Users</small>
+            <div id="users" class="value">0</div>
+        </div>
 
-<!-- STATUS -->
+        <div class="card">
+            <small>Messages</small>
+            <div id="messages" class="value">0</div>
+        </div>
 
-<div class="card">
+        <div class="card">
+            <small>Uptime</small>
+            <div id="uptime" class="value">0s</div>
+        </div>
 
-<h2>🟢 Bot Status</h2>
+    </div>
 
-<div class="grid">
 
-<div class="stat">
+    <div class="panel">
 
-<div class="stat-title">
-STATUS
-</div>
+        <h2>🎮 Bot Control</h2>
 
-<div
-    class="stat-value"
-    id="status"
->
-Checking...
-</div>
+        <button class="start" onclick="botAction('start')">
+            🟢 START
+        </button>
 
-</div>
+        <button class="stop" onclick="botAction('stop')">
+            🔴 STOP
+        </button>
 
+        <p class="muted">
+            START ke baad bot server process ke alive rehne tak continuously chalega.
+        </p>
 
-<div class="stat">
+    </div>
 
-<div class="stat-title">
-MESSAGES
-</div>
 
-<div
-    class="stat-value"
-    id="messages"
->
-0
-</div>
+    <div class="panel">
 
-</div>
+        <h2>👑 Admin Settings</h2>
 
+        <label>Admin UID</label>
+        <input
+            id="adminId"
+            placeholder="Admin Facebook UID"
+        >
 
-<div class="stat">
+        <button class="save" onclick="saveAdmin()">
+            💾 SAVE ADMIN
+        </button>
 
-<div class="stat-title">
-LIVE USERS
-</div>
+    </div>
 
-<div
-    class="stat-value"
-    id="users"
->
-0
-</div>
 
-</div>
+    <div class="panel">
 
+        <h2>⚙️ Configuration</h2>
 
-<div class="stat">
+        <label>Fight File Name</label>
+        <input
+            id="fightFile"
+            placeholder="Example: fight.txt"
+        >
 
-<div class="stat-title">
-UPTIME
-</div>
+        <label>AppState Configuration</label>
+        <input
+            id="appstate"
+            type="text"
+            placeholder="Configuration/reference only"
+        >
 
-<div
-    class="stat-value"
-    id="uptime"
->
-0s
-</div>
+        <p class="warning">
+            ⚠️ AppState/cookies ko personal Facebook-account login ya automation
+            ke liye use nahi kiya ja raha. Bot official Meta Page API ke through
+            operate karta hai.
+        </p>
 
-</div>
+        <button class="save" onclick="saveConfig()">
+            💾 SAVE CONFIG
+        </button>
 
-</div>
+    </div>
 
 
-<div class="grid">
+    <div class="panel">
 
-<button
-    class="start"
-    onclick="botAction('start')"
->
-🟢 START BOT
-</button>
+        <h2>👥 Live Users</h2>
 
+        <div id="userList">
+            Loading...
+        </div>
 
-<button
-    class="stop"
-    onclick="botAction('stop')"
->
-🔴 STOP BOT
-</button>
+    </div>
 
-</div>
 
-</div>
+    <div class="panel">
 
+        <h2>📜 Live Logs</h2>
 
-<!-- ADMIN -->
+        <div id="logs" class="log">
+            Loading...
+        </div>
 
-<div class="card">
-
-<h2>👤 Admin UID</h2>
-
-<label>
-Admin ID / UID
-</label>
-
-<input
-    id="adminId"
-    type="text"
-    placeholder="Admin UID paste karo"
->
-
-<button
-    class="save"
-    onclick="saveAdmin()"
->
-💾 SAVE ADMIN UID
-</button>
-
-<div class="small">
-Admin UID dashboard configuration ke liye hai.
-</div>
-
-</div>
-
-
-<!-- APPSTATE -->
-
-<div class="card">
-
-<h2>🍪 AppState / Cookies</h2>
-
-<textarea
-    id="appstate"
-    placeholder="AppState / Cookies paste field..."
-></textarea>
-
-<div class="warning">
-⚠️ Ye field UI/config only hai.
-Personal Facebook login/session automation ke liye
-use nahi hota.
-</div>
-
-</div>
-
-
-<!-- FIGHT MODE -->
-
-<div class="card">
-
-<h2>⚔️ Fight Mode File</h2>
-
-<input
-    type="file"
-    id="fightFile"
-    accept=".json,.txt"
-    onchange="selectFightFile(this)"
->
-
-<div
-    class="small"
-    id="fightName"
->
-No file selected
-</div>
-
-<div class="warning">
-Uploaded code execute nahi kiya jayega.
-Sirf configuration filename record hoga.
-</div>
-
-</div>
-
-
-<!-- SAVE -->
-
-<div class="card">
-
-<button
-    class="save"
-    onclick="saveConfig()"
->
-💾 SAVE CONFIGURATION
-</button>
-
-</div>
-
-
-<!-- LIVE USERS -->
-
-<div class="card">
-
-<h2>👥 Live Users / UID</h2>
-
-<table>
-
-<thead>
-
-<tr>
-<th>UID</th>
-<th>Messages</th>
-<th>Last Message</th>
-<th>Last Seen</th>
-<th>Status</th>
-</tr>
-
-</thead>
-
-<tbody id="usersTable">
-
-<tr>
-<td colspan="5">
-Waiting...
-</td>
-</tr>
-
-</tbody>
-
-</table>
-
-<div class="small">
-Messenger webhook se receive hue users yahan show honge.
-</div>
-
-</div>
-
-
-<!-- LOGS -->
-
-<div class="card">
-
-<h2>📜 Live Logs</h2>
-
-<div id="logs">
-Loading...
-</div>
-
-</div>
-
-
-<!-- COMMANDS -->
-
-<div class="card">
-
-<h2>📚 Commands</h2>
-
-<div class="small">
-
-help • joke • love • baby • babu • sona • shona • jaan • janu
-
-<br>
-
-sad • bye • thanks • sorry
-
-<br>
-
-good morning • good afternoon • good evening • good night
-
-<br><br>
-
-Normal messages par bhi automatic reply milega.
-
-</div>
-
-</div>
+    </div>
 
 </div>
 
 
 <script>
 
-let fightFileName = "";
+async function loadStatus() {
+
+    try {
+
+        const response = await fetch("/api/status");
+        const data = await response.json();
+
+        const botStatus = document.getElementById("botStatus");
+
+        if (data.enabled) {
+            botStatus.textContent = "🟢 ONLINE";
+            botStatus.className = "value online";
+        } else {
+            botStatus.textContent = "🔴 STOPPED";
+            botStatus.className = "value offline";
+        }
+
+        document.getElementById("users").textContent =
+            data.users ?? 0;
+
+        document.getElementById("messages").textContent =
+            data.messages ?? 0;
+
+        document.getElementById("uptime").textContent =
+            formatUptime(data.uptime_seconds ?? 0);
 
 
-function esc(value) {
+        if (data.admin_id) {
+            document.getElementById("adminId").value =
+                data.admin_id;
+        }
 
-    return String(value ?? "")
+        if (data.fight_file) {
+            document.getElementById("fightFile").value =
+                data.fight_file;
+        }
+
+
+        const users = data.users_data || [];
+
+        if (users.length === 0) {
+
+            document.getElementById("userList").innerHTML =
+                '<p class="muted">Abhi koi user message nahi hai.</p>';
+
+        } else {
+
+            document.getElementById("userList").innerHTML =
+                users.map(user => `
+                    <div class="user">
+                        <div class="user-id">
+                            👤 ${escapeHtml(user.uid)}
+                        </div>
+
+                        <div class="muted">
+                            Messages: ${user.messages}
+                        </div>
+
+                        <div class="muted">
+                            Last: ${escapeHtml(user.last_message || "")}
+                        </div>
+
+                        <div class="muted">
+                            Seen: ${escapeHtml(user.last_seen || "")}
+                        </div>
+                    </div>
+                `).join("");
+        }
+
+
+        const logs = data.logs || [];
+
+        if (logs.length === 0) {
+
+            document.getElementById("logs").innerHTML =
+                '<div class="muted">No logs yet.</div>';
+
+        } else {
+
+            document.getElementById("logs").innerHTML =
+                logs.map(log => `
+                    <div class="log-item">
+                        <b>${escapeHtml(log.time)}</b>
+                        &nbsp;
+                        ${escapeHtml(log.message)}
+                    </div>
+                `).join("");
+        }
+
+    } catch (error) {
+
+        document.getElementById("botStatus").textContent =
+            "⚠️ ERROR";
+
+        console.error(error);
+    }
+}
+
+
+async function botAction(action) {
+
+    try {
+
+        const response = await fetch(
+            "/api/bot/" + action,
+            {
+                method: "POST"
+            }
+        );
+
+        const data = await response.json();
+
+        if (!data.ok) {
+            alert(data.error || "Action failed");
+            return;
+        }
+
+        await loadStatus();
+
+    } catch (error) {
+
+        alert("Server connection failed");
+    }
+}
+
+
+async function saveAdmin() {
+
+    const adminId =
+        document.getElementById("adminId").value.trim();
+
+    try {
+
+        const response = await fetch(
+            "/api/admin",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    admin_id: adminId
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        alert(
+            data.ok
+                ? "👑 Admin UID saved"
+                : "❌ Save failed"
+        );
+
+        await loadStatus();
+
+    } catch (error) {
+
+        alert("Server connection failed");
+    }
+}
+
+
+async function saveConfig() {
+
+    const fightFile =
+        document.getElementById("fightFile").value.trim();
+
+    const appstate =
+        document.getElementById("appstate").value.trim();
+
+    try {
+
+        const response = await fetch(
+            "/api/config",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    fight_file: fightFile,
+                    appstate: appstate
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        alert(
+            data.ok
+                ? "⚙️ Configuration saved"
+                : "❌ Save failed"
+        );
+
+        await loadStatus();
+
+    } catch (error) {
+
+        alert("Server connection failed");
+    }
+}
+
+
+function formatUptime(seconds) {
+
+    seconds = Number(seconds);
+
+    const days =
+        Math.floor(seconds / 86400);
+
+    seconds %= 86400;
+
+    const hours =
+        Math.floor(seconds / 3600);
+
+    seconds %= 3600;
+
+    const minutes =
+        Math.floor(seconds / 60);
+
+    seconds =
+        Math.floor(seconds % 60);
+
+    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
@@ -443,373 +521,9 @@ function esc(value) {
 }
 
 
-/* =========================================
-   LOAD STATUS
-========================================= */
-
-async function loadStatus() {
-
-    try {
-
-        const response =
-            await fetch("/api/status");
-
-        const data =
-            await response.json();
-
-
-        document.getElementById(
-            "status"
-        ).textContent =
-            data.bot_enabled
-                ? "🟢 ONLINE"
-                : "🔴 OFFLINE";
-
-
-        document.getElementById(
-            "messages"
-        ).textContent =
-            data.messages;
-
-
-        document.getElementById(
-            "users"
-        ).textContent =
-            data.live_users.length;
-
-
-        document.getElementById(
-            "uptime"
-        ).textContent =
-            data.uptime + "s";
-
-
-        document.getElementById(
-            "adminId"
-        ).value =
-            data.admin_id || "";
-
-
-        renderUsers(
-            data.live_users
-        );
-
-
-        renderLogs(
-            data.logs
-        );
-
-
-    } catch (error) {
-
-        document.getElementById(
-            "status"
-        ).textContent =
-            "🔴 ERROR";
-
-    }
-
-}
-
-
-/* =========================================
-   USERS
-========================================= */
-
-function renderUsers(users) {
-
-    const table =
-        document.getElementById(
-            "usersTable"
-        );
-
-
-    if (!users.length) {
-
-        table.innerHTML =
-            `
-            <tr>
-                <td colspan="5">
-                    No live users
-                </td>
-            </tr>
-            `;
-
-        return;
-    }
-
-
-    table.innerHTML =
-        users.map(user => `
-
-            <tr>
-
-                <td>
-                    ${esc(user.uid)}
-                </td>
-
-                <td>
-                    ${esc(user.messages)}
-                </td>
-
-                <td>
-                    ${esc(user.last_message)}
-                </td>
-
-                <td>
-                    ${esc(user.last_seen)}
-                </td>
-
-                <td>
-                    ${esc(user.status)}
-                </td>
-
-            </tr>
-
-        `).join("");
-
-}
-
-
-/* =========================================
-   LOGS
-========================================= */
-
-function renderLogs(logs) {
-
-    const box =
-        document.getElementById(
-            "logs"
-        );
-
-
-    if (!logs.length) {
-
-        box.innerHTML =
-            '<div class="small">No logs</div>';
-
-        return;
-    }
-
-
-    box.innerHTML =
-        logs.map(log => `
-
-            <div class="log">
-
-                [${esc(log.time)}]
-
-                ${esc(log.text)}
-
-            </div>
-
-        `).join("");
-
-}
-
-
-/* =========================================
-   START / STOP
-========================================= */
-
-async function botAction(action) {
-
-    try {
-
-        await fetch(
-            "/api/bot/" + action,
-            {
-                method: "POST"
-            }
-        );
-
-        await loadStatus();
-
-    } catch (error) {
-
-        alert(
-            "❌ Server error"
-        );
-
-    }
-
-}
-
-
-/* =========================================
-   ADMIN UID
-========================================= */
-
-async function saveAdmin() {
-
-    const adminId =
-        document
-            .getElementById("adminId")
-            .value
-            .trim();
-
-
-    if (!adminId) {
-
-        alert(
-            "⚠️ Admin UID paste karo"
-        );
-
-        return;
-    }
-
-
-    const response =
-        await fetch(
-            "/api/admin",
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-                    admin_id: adminId
-                })
-            }
-        );
-
-
-    const data =
-        await response.json();
-
-
-    if (data.ok) {
-
-        alert(
-            "✅ Admin UID saved"
-        );
-
-        loadStatus();
-
-    } else {
-
-        alert(
-            "❌ " +
-            (data.error || "Save failed")
-        );
-
-    }
-
-}
-
-
-/* =========================================
-   FIGHT FILE
-========================================= */
-
-function selectFightFile(input) {
-
-    if (!input.files.length) {
-
-        fightFileName = "";
-
-        document.getElementById(
-            "fightName"
-        ).textContent =
-            "No file selected";
-
-        return;
-    }
-
-
-    fightFileName =
-        input.files[0].name;
-
-
-    document.getElementById(
-        "fightName"
-    ).textContent =
-        "Selected: " +
-        fightFileName;
-
-}
-
-
-/* =========================================
-   SAVE CONFIG
-========================================= */
-
-async function saveConfig() {
-
-    const appstate =
-        document
-            .getElementById("appstate")
-            .value;
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/config",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        appstate:
-                            appstate,
-
-                        fight_file:
-                            fightFileName
-
-                    })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (data.ok) {
-
-            alert(
-                "✅ Configuration saved"
-            );
-
-        } else {
-
-            alert(
-                "❌ Save failed"
-            );
-
-        }
-
-    } catch (error) {
-
-        alert(
-            "❌ Server error"
-        );
-
-    }
-
-}
-
-
-/* =========================================
-   AUTO REFRESH
-========================================= */
-
 loadStatus();
 
-setInterval(
-    loadStatus,
-    5000
-);
+setInterval(loadStatus, 3000);
 
 </script>
 
