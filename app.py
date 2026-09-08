@@ -1,26 +1,29 @@
 import os
-import random
-from datetime import datetime
+import time
+from collections import defaultdict
+from threading import Lock
 
 import requests
-from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
+from flask import Flask, jsonify, request, render_template
 
 from bot.replies import generate_reply
-from bot.fonts import stylish_text
 
 load_dotenv()
 
 app = Flask(__name__)
+app.config["JSON_AS_ASCII"] = False
 
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "")
+
+# =========================================================
+# CONFIG
+# =========================================================
+
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "change-this")
 PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN", "")
-OWNER_ID = os.getenv("OWNER_ID", "")
+GRAPH_API_VERSION = os.getenv("GRAPH_API_VERSION", "v23.0")
 
-GRAPH_API_VERSION = os.getenv(
-    "GRAPH_API_VERSION",
-    "v23.0"
-)
+OWNER_ID = os.getenv("OWNER_ID", "")
 
 GROUP_LINK = os.getenv(
     "GROUP_LINK",
@@ -32,86 +35,100 @@ RK_RAJA_IMAGE_URL = os.getenv(
     ""
 )
 
-# Server start = bot ON
-BOT_ENABLED = True
+BOT_ENABLED = (
+    os.getenv("BOT_ENABLED", "true").lower() == "true"
+)
 
-# Locked users
+
+# =========================================================
+# STATE
+# =========================================================
+
 LOCKED_USERS = set()
 
-# User statistics
-USER_STATS = {}
+STATS = defaultdict(int)
 
-STATS = {
-    "messages_received": 0,
-    "replies_sent": 0,
-    "errors": 0,
-    "started_at": datetime.utcnow().isoformat() + "Z",
-    "last_message": "",
-    "last_reply": ""
-}
+STATE_LOCK = Lock()
 
-RK_RAJA_MESSAGE = f"""🌙᯾🙂𝐁ɽ፝֟ɵ͜͡ƙ⃟ɛ͠ɳ💔ϯ•🕊️𝐇ɘ፝֟͜͡ʌ̴ʀ⃞ʈ🩷•ϯ
-
-Joine my gc Rk raja Family
-{GROUP_LINK}"""
+START_TIME = time.time()
 
 
-# ==================================================
+# =========================================================
+# LOG
+# =========================================================
+
+def log(message):
+    app.logger.info(message)
+
+
+# =========================================================
 # GRAPH API
-# ==================================================
+# =========================================================
 
 def graph_url(path):
     return (
         f"https://graph.facebook.com/"
-        f"{GRAPH_API_VERSION}/{path}"
+        f"{GRAPH_API_VERSION}/"
+        f"{path.lstrip('/')}"
     )
 
+
+# =========================================================
+# SEND TEXT
+# =========================================================
 
 def send_text(recipient_id, text):
 
     if not PAGE_ACCESS_TOKEN:
-        print("PAGE_ACCESS_TOKEN missing")
-        STATS["errors"] += 1
+        log("PAGE_ACCESS_TOKEN missing.")
         return False
-
-    payload = {
-        "recipient": {
-            "id": recipient_id
-        },
-        "message": {
-            "text": text
-        },
-        "access_token": PAGE_ACCESS_TOKEN
-    }
 
     try:
 
-        r = requests.post(
+        response = requests.post(
             graph_url("me/messages"),
-            json=payload,
-            timeout=20
+
+            params={
+                "access_token": PAGE_ACCESS_TOKEN
+            },
+
+            json={
+                "recipient": {
+                    "id": recipient_id
+                },
+
+                "messaging_type": "RESPONSE",
+
+                "message": {
+                    "text": text
+                }
+            },
+
+            timeout=15
         )
 
-        print(
-            "SEND TEXT:",
-            r.status_code,
-            r.text
+        if not response.ok:
+
+            log(
+                f"Graph send error "
+                f"{response.status_code}: "
+                f"{response.text[:300]}"
+            )
+
+        return response.ok
+
+    except requests.RequestException as exc:
+
+        log(
+            f"Graph request error: {exc}"
         )
 
-        if r.ok:
-            STATS["replies_sent"] += 1
-            STATS["last_reply"] = text
-            return True
-
-        STATS["errors"] += 1
         return False
 
-    except requests.RequestException as e:
 
-        print("SEND TEXT ERROR:", e)
-        STATS["errors"] += 1
-        return False
-
+# =========================================================
+# SEND IMAGE
+# =========================================================
 
 def send_image(recipient_id, image_url):
 
@@ -121,350 +138,240 @@ def send_image(recipient_id, image_url):
     if not image_url:
         return False
 
-    payload = {
-        "recipient": {
-            "id": recipient_id
-        },
-        "message": {
-            "attachment": {
-                "type": "image",
-                "payload": {
-                    "url": image_url,
-                    "is_reusable": True
-                }
-            }
-        },
-        "access_token": PAGE_ACCESS_TOKEN
-    }
-
     try:
 
-        r = requests.post(
+        response = requests.post(
+
             graph_url("me/messages"),
-            json=payload,
-            timeout=20
+
+            params={
+                "access_token": PAGE_ACCESS_TOKEN
+            },
+
+            json={
+
+                "recipient": {
+                    "id": recipient_id
+                },
+
+                "messaging_type": "RESPONSE",
+
+                "message": {
+
+                    "attachment": {
+
+                        "type": "image",
+
+                        "payload": {
+
+                            "url": image_url,
+
+                            "is_reusable": True
+
+                        }
+
+                    }
+
+                }
+
+            },
+
+            timeout=15
         )
 
-        print(
-            "SEND IMAGE:",
-            r.status_code,
-            r.text
+        if not response.ok:
+
+            log(
+                f"Image send error "
+                f"{response.status_code}: "
+                f"{response.text[:300]}"
+            )
+
+        return response.ok
+
+    except requests.RequestException as exc:
+
+        log(
+            f"Image request error: {exc}"
         )
 
-        if not r.ok:
-            STATS["errors"] += 1
-
-        return r.ok
-
-    except requests.RequestException as e:
-
-        print("SEND IMAGE ERROR:", e)
-        STATS["errors"] += 1
         return False
 
 
-# ==================================================
-# USER SYSTEM
-# ==================================================
-
-def get_user_stats(user_id):
-
-    if user_id not in USER_STATS:
-
-        USER_STATS[user_id] = {
-            "messages": 0,
-            "xp": 0
-        }
-
-    return USER_STATS[user_id]
-
-
-def add_user_message(user_id):
-
-    stats = get_user_stats(user_id)
-
-    stats["messages"] += 1
-    stats["xp"] += 10
-
-    return stats
-
-
-def user_level(xp):
-    return (xp // 100) + 1
-
-
-SHAYARI = [
-
-    "Muskurahat ka koi mol nahi,\npar jiski wajah tum ho, woh pal anmol hai. ❤️",
-
-    "Dil ki baat lafzon mein kaha nahi karte,\njo apne hain unhe bhula nahi karte. 🥀",
-
-    "Kuch log kahani nahi,\nkhubsurat ehsaas ban jaate hain. ✨",
-
-    "Mohabbat naam hai us ehsaas ka,\njisme khud se zyada fikr kisi aur ki hoti hai. ❤️",
-
-    "Raat kitni bhi khamosh ho,\nsubah ek nayi kahani zaroor laati hai. 🌙",
-
-    "Waqt badalta zaroor hai,\npar achhe log dil se kabhi nahi jaate. ❤️",
-
-    "Kuch yaadein tasveer nahi hoti,\nphir bhi dil mein hamesha zinda rehti hain. 🌸",
-
-    "Khamoshi bhi bahut kuch keh jaati hai,\nbas samajhne wala chahiye. 🌙"
-
-]
-
-
-def make_user_info(user_id):
-
-    stats = get_user_stats(user_id)
-
-    level = user_level(
-        stats["xp"]
-    )
-
-    next_xp = level * 100
-
-    remaining = max(
-        0,
-        next_xp - stats["xp"]
-    )
-
-    shayari = random.choice(
-        SHAYARI
-    )
-
-    locked = user_id in LOCKED_USERS
-
-    lock_status = (
-        "🔒 LOCKED"
-        if locked
-        else
-        "🔓 UNLOCKED"
-    )
-
-    return f"""👤 𝐔𝐒𝐄𝐑 𝐈𝐍𝐅𝐎
-
-🆔 User ID:
-{user_id}
-
-⭐ Level:
-{level}
-
-✨ XP:
-{stats["xp"]}
-
-💬 Messages:
-{stats["messages"]}
-
-📈 Next Level:
-{next_xp} XP
-
-🔐 Message Status:
-{lock_status}
-
-✍️ 𝐒𝐡𝐚𝐲𝐚𝐫𝐢:
-
-{shayari}"""
-
-
-# ==================================================
-# RK RAJA
-# ==================================================
-
-def is_rk_raja(text):
-
-    text = text.lower()
-    text = text.replace("_", " ")
-
-    return (
-        "rk raja" in text
-        or "rkraja" in text
-    )
-
-
-# ==================================================
-# REPLY
-# ==================================================
-
-def make_reply(text):
-
-    reply = generate_reply(text)
-
-    if random.random() < 0.35:
-        reply = stylish_text(reply)
-
-    return reply
-
-
-# ==================================================
+# =========================================================
 # OWNER COMMANDS
-# ==================================================
+#
+# Admin UID panel mein nahi hai.
+# OWNER_ID .env se aayega.
+# =========================================================
 
 def owner_command(sender_id, text):
 
-    global BOT_ENABLED
-
     if not OWNER_ID:
-        return False
+        return False, None
 
     if str(sender_id) != str(OWNER_ID):
-        return False
+        return False, None
 
-    command = text.strip().lower()
+    t = " ".join(
+        str(text).lower().split()
+    )
 
-    # START
-    if command == "/bot on":
+    global BOT_ENABLED
+
+
+    # BOT ON
+    if t == "bot on":
 
         BOT_ENABLED = True
 
-        send_text(
-            sender_id,
-            "🟢 𝐑𝐊 𝐑𝐀𝐉𝐀 𝐁𝐎𝐓 𝐒𝐓𝐀𝐑𝐓𝐄𝐃\n\n"
-            "Automatic replies ON ✅"
+        return True, (
+            "🤖 BOT ONLINE 👍"
         )
 
-        return True
 
-    # STOP
-    if command == "/bot off":
+    # BOT OFF
+    if t == "bot off":
 
         BOT_ENABLED = False
 
-        send_text(
-            sender_id,
-            "🔴 𝐑𝐊 𝐑𝐀𝐉𝐀 𝐁𝐎𝐓 𝐒𝐓𝐎𝐏𝐏𝐄𝐃\n\n"
-            "Automatic replies OFF 🛑"
+        return True, (
+            "🛑 BOT OFF"
         )
 
-        return True
 
-    # USER LOCK
-    if command.startswith("/lock "):
+    # LOCK USER
+    if t.startswith("lock "):
 
-        user_id = text.strip()[6:].strip()
+        uid = t.split(
+            maxsplit=1
+        )[1].strip()
 
-        if not user_id:
-            return True
+        if not uid:
+            return True, "⚠️ User ID missing."
 
-        LOCKED_USERS.add(
-            user_id
+        LOCKED_USERS.add(uid)
+
+        return True, (
+            "🔒 User locked successfully."
         )
 
-        send_text(
-            sender_id,
-            f"🔒 User locked:\n{user_id}"
+
+    # UNLOCK USER
+    if t.startswith("unlock "):
+
+        uid = t.split(
+            maxsplit=1
+        )[1].strip()
+
+        if not uid:
+            return True, "⚠️ User ID missing."
+
+        LOCKED_USERS.discard(uid)
+
+        return True, (
+            "🔓 User unlocked successfully."
         )
 
-        return True
 
-    # USER UNLOCK
-    if command.startswith("/unlock "):
+    # LOCKED LIST
+    if t == "locked":
 
-        user_id = text.strip()[8:].strip()
-
-        if not user_id:
-            return True
-
-        LOCKED_USERS.discard(
-            user_id
+        return True, (
+            f"🔒 Locked users: "
+            f"{len(LOCKED_USERS)}"
         )
 
-        send_text(
-            sender_id,
-            f"🔓 User unlocked:\n{user_id}"
-        )
 
-        return True
-
-    # LIST LOCKED USERS
-    if command == "/locked":
-
-        if not LOCKED_USERS:
-
-            send_text(
-                sender_id,
-                "🔓 Koi user locked nahi hai."
-            )
-
-        else:
-
-            users = "\n".join(
-                LOCKED_USERS
-            )
-
-            send_text(
-                sender_id,
-                "🔒 LOCKED USERS\n\n" + users
-            )
-
-        return True
-
-    return False
+    return False, None
 
 
-# ==================================================
-# MESSAGE HANDLER
-# ==================================================
+# =========================================================
+# HANDLE MESSAGE
+# =========================================================
 
-def handle_message(
-    sender_id,
-    text
-):
+def handle_message(sender_id, text):
 
-    if not sender_id or not text:
+    global BOT_ENABLED
+
+    if not BOT_ENABLED:
         return
 
-    text = text.strip()
 
-    STATS["messages_received"] += 1
-    STATS["last_message"] = text
+    # -----------------------------------------------------
+    # LOCKED USER
+    # -----------------------------------------------------
 
-    stats = add_user_message(
-        sender_id
-    )
+    if str(sender_id) in LOCKED_USERS:
+        log(
+            f"Ignored locked user: "
+            f"{sender_id}"
+        )
+        return
 
-    print()
-    print("==============================")
-    print("MESSAGE:", text)
-    print("USER:", sender_id)
-    print("LEVEL:", user_level(stats["xp"]))
 
-    # Owner controls
-    if owner_command(
+    # -----------------------------------------------------
+    # ADMIN COMMANDS
+    # -----------------------------------------------------
+
+    handled, owner_reply = owner_command(
         sender_id,
         text
-    ):
-        return
+    )
 
-    # Bot stopped
-    if not BOT_ENABLED:
-        print("BOT OFF")
-        return
+    if handled:
 
-    # User locked
-    if sender_id in LOCKED_USERS:
-
-        print(
-            "USER LOCKED:",
-            sender_id
-        )
+        if owner_reply:
+            send_text(
+                sender_id,
+                owner_reply
+            )
 
         return
 
-    # /info
-    if text.lower() == "/info":
+
+    # -----------------------------------------------------
+    # NORMALIZE TEXT
+    # -----------------------------------------------------
+
+    t = " ".join(
+        str(text).lower().strip().split()
+    )
+
+
+    # -----------------------------------------------------
+    # USER REQUESTED STICKER MODE
+    #
+    # No automatic flooding.
+    # Actual sticker capability depends
+    # on Meta API support.
+    # -----------------------------------------------------
+
+    if t in {
+        "spam sticker",
+        "sticker spam"
+    }:
 
         send_text(
             sender_id,
-            make_user_info(
-                sender_id
-            )
+
+            "🎨 Sticker mode requested 😜\n"
+            "Controlled sticker/media action "
+            "can be added when your Meta app "
+            "supports the required media feature."
         )
 
         return
 
-    # RK Raja
-    if is_rk_raja(text):
+
+    # -----------------------------------------------------
+    # RK RAJA TRIGGER
+    # -----------------------------------------------------
+
+    if (
+        "rk raja" in t
+        or t == "rkraja"
+    ):
 
         if RK_RAJA_IMAGE_URL:
 
@@ -473,32 +380,53 @@ def handle_message(
                 RK_RAJA_IMAGE_URL
             )
 
+
         send_text(
+
             sender_id,
-            RK_RAJA_MESSAGE
+
+            "🌙᯾🙂𝐁ɽ፝֟ɵ͜͡ƙ⃟ɛ͠ɳ💔ϯ•🕊️𝐇ɘ፝֟͜͡ʌ̴ʀ⃞ʈ🩷•ϯ\n\n"
+            "Joine my gc Rk raja Family\n"
+            f"{GROUP_LINK}"
+
         )
 
         return
 
-    # Normal reply
-    reply = make_reply(text)
 
-    print(
-        "BOT REPLY:",
-        reply
-    )
+    # -----------------------------------------------------
+    # GENERATE NORMAL REPLY
+    # -----------------------------------------------------
 
-    send_text(
-        sender_id,
-        reply
-    )
+    reply = generate_reply(text)
 
 
-# ==================================================
+    if reply:
+
+        send_text(
+            sender_id,
+            reply
+        )
+
+
+    # -----------------------------------------------------
+    # STATS
+    # -----------------------------------------------------
+
+    with STATE_LOCK:
+
+        STATS["messages"] += 1
+
+        STATS[
+            str(sender_id)
+        ] += 1
+
+
+# =========================================================
 # DASHBOARD
-# ==================================================
+# =========================================================
 
-@app.route("/")
+@app.get("/")
 def index():
 
     return render_template(
@@ -506,182 +434,185 @@ def index():
     )
 
 
-@app.route("/health")
+# =========================================================
+# HEALTH
+# =========================================================
+
+@app.get("/health")
 def health():
 
     return jsonify({
-        "status": "online",
-        "bot": "RK RAJA BOT",
-        "bot_enabled": BOT_ENABLED
+
+        "status": "ok",
+
+        "bot_enabled":
+            BOT_ENABLED,
+
+        "uptime_seconds":
+            int(
+                time.time()
+                - START_TIME
+            )
+
     })
 
 
-@app.route("/api/status")
-def api_status():
+# =========================================================
+# STATUS API
+# =========================================================
+
+@app.get("/api/status")
+def status():
+
+    with STATE_LOCK:
+
+        message_count = (
+            STATS["messages"]
+        )
 
     return jsonify({
 
-        "bot": "RK RAJA BOT",
+        "online": True,
 
-        "status":
-            "RUNNING"
-            if BOT_ENABLED
-            else "STOPPED",
+        "bot_enabled":
+            BOT_ENABLED,
 
-        "server": "ONLINE",
-
-        "webhook": "READY",
-
-        "messages_received":
-            STATS["messages_received"],
-
-        "replies_sent":
-            STATS["replies_sent"],
-
-        "users":
-            len(USER_STATS),
+        "messages":
+            message_count,
 
         "locked_users":
-            len(LOCKED_USERS),
+            len(LOCKED_USERS)
 
-        "errors":
-            STATS["errors"],
-
-        "last_message":
-            STATS["last_message"],
-
-        "last_reply":
-            STATS["last_reply"],
-
-        "started_at":
-            STATS["started_at"]
     })
 
 
-# ==================================================
-# OWNER WEB DASHBOARD CONTROLS
-# ==================================================
+# =========================================================
+# START / STOP
+# =========================================================
 
-@app.route(
-    "/api/bot/<action>",
-    methods=["POST"]
-)
-def bot_control(action):
+@app.post("/api/bot/<action>")
+def bot_action(action):
 
     global BOT_ENABLED
 
-    # Browser dashboard se owner token verify
-    owner_key = request.headers.get(
-        "X-Owner-Key",
-        ""
-    )
-
-    if not OWNER_ID:
-        return jsonify({
-            "ok": False,
-            "error": "OWNER_ID not configured"
-        }), 500
-
-    if owner_key != OWNER_ID:
-        return jsonify({
-            "ok": False,
-            "error": "Unauthorized"
-        }), 403
 
     if action == "start":
 
         BOT_ENABLED = True
 
+        log(
+            "Bot started from dashboard."
+        )
+
         return jsonify({
+
             "ok": True,
-            "status": "RUNNING"
+
+            "bot_enabled": True
+
         })
+
 
     if action == "stop":
 
         BOT_ENABLED = False
 
+        log(
+            "Bot stopped from dashboard."
+        )
+
         return jsonify({
+
             "ok": True,
-            "status": "STOPPED"
+
+            "bot_enabled": False
+
         })
 
+
     return jsonify({
+
         "ok": False,
-        "error": "Unknown action"
+
+        "error":
+            "unknown action"
+
     }), 400
 
 
-# ==================================================
-# OWNER USER LOCK CONTROL
-# ==================================================
+# =========================================================
+# USER LOCK / UNLOCK
+# =========================================================
 
-@app.route(
-    "/api/user/<action>",
-    methods=["POST"]
-)
-def user_control(action):
+@app.post("/api/user/<action>")
+def user_action(action):
 
-    owner_key = request.headers.get(
-        "X-Owner-Key",
-        ""
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
     )
 
-    if owner_key != OWNER_ID:
-
-        return jsonify({
-            "ok": False,
-            "error": "Unauthorized"
-        }), 403
-
-    data = request.get_json(
-        silent=True
-    ) or {}
-
-    user_id = str(
+    uid = str(
         data.get(
             "user_id",
             ""
         )
     ).strip()
 
-    if not user_id:
+
+    if not uid:
 
         return jsonify({
+
             "ok": False,
-            "error": "user_id required"
+
+            "error":
+                "user_id required"
+
         }), 400
+
 
     if action == "lock":
 
-        LOCKED_USERS.add(
-            user_id
-        )
-
-    elif action == "unlock":
-
-        LOCKED_USERS.discard(
-            user_id
-        )
-
-    else:
+        LOCKED_USERS.add(uid)
 
         return jsonify({
-            "ok": False,
-            "error": "Unknown action"
-        }), 400
+
+            "ok": True,
+
+            "locked": True
+
+        })
+
+
+    if action == "unlock":
+
+        LOCKED_USERS.discard(uid)
+
+        return jsonify({
+
+            "ok": True,
+
+            "locked": False
+
+        })
+
 
     return jsonify({
-        "ok": True,
-        "user_id": user_id,
-        "locked":
-            user_id in LOCKED_USERS
-    })
+
+        "ok": False,
+
+        "error":
+            "unknown action"
+
+    }), 400
 
 
-# ==================================================
+# =========================================================
 # META WEBHOOK VERIFY
-# ==================================================
+# =========================================================
 
 @app.route(
     "/webhook",
@@ -701,19 +632,27 @@ def webhook_verify():
         "hub.challenge"
     )
 
+
     if (
         mode == "subscribe"
         and token == VERIFY_TOKEN
     ):
 
-        return challenge or "", 200
+        return (
+            challenge or "",
+            200
+        )
 
-    return "Verification failed", 403
+
+    return (
+        "Forbidden",
+        403
+    )
 
 
-# ==================================================
+# =========================================================
 # META WEBHOOK RECEIVE
-# ==================================================
+# =========================================================
 
 @app.route(
     "/webhook",
@@ -721,40 +660,35 @@ def webhook_verify():
 )
 def webhook_receive():
 
-    data = request.get_json(
-        silent=True
-    ) or {}
+    payload = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
 
-    print()
-    print("WEBHOOK:")
-    print(data)
 
-    if data.get("object") != "page":
+    if payload.get(
+        "object"
+    ) != "page":
 
-        return "EVENT_RECEIVED", 200
+        return (
+            "EVENT_RECEIVED",
+            200
+        )
 
-    for entry in data.get(
+
+    for entry in payload.get(
         "entry",
         []
     ):
 
-        for messaging in entry.get(
+        for event in entry.get(
             "messaging",
             []
         ):
 
-            message = messaging.get(
-                "message",
-                {}
-            )
-
-            # Ignore Page echo
-            if message.get(
-                "is_echo"
-            ):
-                continue
-
-            sender = messaging.get(
+            sender = event.get(
                 "sender",
                 {}
             )
@@ -763,78 +697,56 @@ def webhook_receive():
                 "id"
             )
 
+            message = event.get(
+                "message",
+                {}
+            )
+
             text = message.get(
                 "text"
             )
 
-            if sender_id and text:
+
+            if (
+                sender_id
+                and text
+            ):
+
+                log(
+                    f"Message from "
+                    f"{sender_id}: "
+                    f"{text}"
+                )
 
                 handle_message(
                     sender_id,
                     text
                 )
 
-    return "EVENT_RECEIVED", 200
+
+    return (
+        "EVENT_RECEIVED",
+        200
+    )
 
 
-# ==================================================
-# LOCAL REPLY TEST API
-# ==================================================
-
-@app.route(
-    "/api/reply",
-    methods=["POST"]
-)
-def api_reply():
-
-    data = request.get_json(
-        silent=True
-    ) or {}
-
-    text = str(
-        data.get(
-            "text",
-            ""
-        )
-    ).strip()
-
-    if not text:
-
-        return jsonify({
-            "ok": False,
-            "error": "Text required"
-        }), 400
-
-    return jsonify({
-        "ok": True,
-        "reply": make_reply(text)
-    })
-
-
-# ==================================================
-# START SERVER
-# ==================================================
+# =========================================================
+# RUN
+# =========================================================
 
 if __name__ == "__main__":
 
-    port = int(
-        os.getenv(
-            "PORT",
-            "25042"
-        )
-    )
-
-    print()
-    print("==============================")
-    print("      RK RAJA BOT")
-    print("==============================")
-    print("BOT: RUNNING")
-    print("SERVER: ONLINE")
-    print("PORT:", port)
-    print("==============================")
-
     app.run(
+
         host="0.0.0.0",
-        port=port,
+
+        port=int(
+            os.getenv(
+                "PORT",
+                "25042"
+            )
+        ),
+
         debug=False
+
     )
