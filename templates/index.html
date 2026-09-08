@@ -1,752 +1,744 @@
-import os
-import time
-from collections import defaultdict
-from threading import Lock
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
+
+<title>✨ RK RAJA BOT PANEL ✨</title>
+
+<style>
+
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+padding:15px;
+min-height:100vh;
+font-family:Arial,sans-serif;
+color:white;
+background:linear-gradient(
+135deg,
+#ff4081,
+#9c27b0,
+#2979ff
+);
+background-size:300% 300%;
+animation:bg 12s infinite;
+}
+
+@keyframes bg{
+0%{background-position:0 50%}
+50%{background-position:100% 50%}
+100%{background-position:0 50%}
+}
+
+.wrap{
+max-width:1050px;
+margin:auto;
+}
+
+.hero{
+text-align:center;
+padding:15px;
+}
+
+.hero h1{
+margin:0;
+font-size:clamp(30px,8vw,55px);
+text-shadow:0 0 20px white;
+}
+
+.hero p{
+color:#ffe082;
+font-weight:bold;
+}
+
+.card{
+background:#ffffff22;
+border:1px solid #ffffff44;
+border-radius:22px;
+padding:18px;
+margin:15px 0;
+backdrop-filter:blur(12px);
+box-shadow:0 10px 35px #0003;
+}
+
+.status{
+display:grid;
+grid-template-columns:repeat(
+auto-fit,
+minmax(170px,1fr)
+);
+gap:10px;
+}
+
+.badge{
+padding:14px;
+border-radius:15px;
+background:#0004;
+text-align:center;
+font-weight:bold;
+}
+
+.btns{
+display:flex;
+gap:12px;
+justify-content:center;
+flex-wrap:wrap;
+margin-top:18px;
+}
+
+button{
+border:0;
+border-radius:50px;
+padding:13px 25px;
+font-size:16px;
+font-weight:bold;
+color:white;
+cursor:pointer;
+background:linear-gradient(
+90deg,
+#ff4081,
+#7c4dff
+);
+}
 
-import requests
-from dotenv import load_dotenv
-from flask import Flask, jsonify, request, render_template
+button.stop{
+background:linear-gradient(
+90deg,
+#f44336,
+#b71c1c
+);
+}
 
-from bot.replies import generate_reply
+input{
+width:100%;
+padding:13px;
+border:0;
+outline:none;
+border-radius:12px;
+font-size:16px;
+background:#ffffff30;
+color:white;
+}
+
+input::placeholder{
+color:#ffffffbb;
+}
 
-load_dotenv()
+pre{
+white-space:pre-wrap;
+word-break:break-word;
+line-height:1.55;
+font-size:14px;
+}
 
-app = Flask(__name__)
-app.config["JSON_AS_ASCII"] = False
+table{
+width:100%;
+border-collapse:collapse;
+font-size:13px;
+}
 
+th,td{
+padding:10px 6px;
+border-bottom:1px solid #ffffff33;
+text-align:left;
+}
 
-# =========================================================
-# CONFIG
-# =========================================================
+.live{
+color:#69f0ae;
+font-weight:bold;
+}
 
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "change-this")
-PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN", "")
-GRAPH_API_VERSION = os.getenv("GRAPH_API_VERSION", "v23.0")
+.small{
+opacity:.8;
+font-size:13px;
+}
 
-OWNER_ID = os.getenv("OWNER_ID", "")
+@media(max-width:600px){
 
-GROUP_LINK = os.getenv(
-    "GROUP_LINK",
-    "https://t.me/Akatsuki_rulex"
-)
+body{
+padding:8px;
+}
 
-RK_RAJA_IMAGE_URL = os.getenv(
-    "RK_RAJA_IMAGE_URL",
-    ""
-)
+.card{
+padding:14px;
+}
 
-BOT_ENABLED = (
-    os.getenv("BOT_ENABLED", "true").lower() == "true"
-)
+button{
+width:100%;
+}
 
+table{
+font-size:11px;
+}
 
-# =========================================================
-# STATE
-# =========================================================
+}
 
-LOCKED_USERS = set()
+</style>
+</head>
 
-STATS = defaultdict(int)
+<body>
 
-STATE_LOCK = Lock()
+<div class="wrap">
 
-START_TIME = time.time()
 
+<div class="hero">
 
-# =========================================================
-# LOG
-# =========================================================
+<h1>✨ RK RAJA BOT ✨</h1>
 
-def log(message):
-    app.logger.info(message)
+<p>
+Facebook Page Messenger Control Center
+</p>
 
+</div>
 
-# =========================================================
-# GRAPH API
-# =========================================================
 
-def graph_url(path):
-    return (
-        f"https://graph.facebook.com/"
-        f"{GRAPH_API_VERSION}/"
-        f"{path.lstrip('/')}"
-    )
+<!-- STATUS -->
 
+<div class="card">
 
-# =========================================================
-# SEND TEXT
-# =========================================================
+<h2>🤖 BOT STATUS</h2>
 
-def send_text(recipient_id, text):
+<div class="status">
 
-    if not PAGE_ACCESS_TOKEN:
-        log("PAGE_ACCESS_TOKEN missing.")
-        return False
+<div class="badge">
+🟢 SERVER<br>
+<span id="server">CHECKING</span>
+</div>
 
-    try:
+<div class="badge">
+🤖 BOT<br>
+<span id="bot">CHECKING</span>
+</div>
 
-        response = requests.post(
-            graph_url("me/messages"),
+<div class="badge">
+💬 MESSAGES<br>
+<span id="messages">0</span>
+</div>
 
-            params={
-                "access_token": PAGE_ACCESS_TOKEN
-            },
+<div class="badge">
+🔒 LOCKED<br>
+<span id="locked">0</span>
+</div>
 
-            json={
-                "recipient": {
-                    "id": recipient_id
-                },
+</div>
 
-                "messaging_type": "RESPONSE",
 
-                "message": {
-                    "text": text
-                }
-            },
+<div class="btns">
 
-            timeout=15
-        )
+<button onclick="botAction('start')">
+START 👑
+</button>
 
-        if not response.ok:
+<button
+class="stop"
+onclick="botAction('stop')">
+STOP 🛑
+</button>
 
-            log(
-                f"Graph send error "
-                f"{response.status_code}: "
-                f"{response.text[:300]}"
-            )
+</div>
 
-        return response.ok
+</div>
 
-    except requests.RequestException as exc:
 
-        log(
-            f"Graph request error: {exc}"
-        )
+<!-- BOT / ADMIN -->
 
-        return False
+<div class="card">
 
+<h2>🆔 BOT DETAILS</h2>
 
-# =========================================================
-# SEND IMAGE
-# =========================================================
+<p>
+🤖 Bot ID:
+<b id="botId">---</b>
+</p>
 
-def send_image(recipient_id, image_url):
+<p>
+👑 Admin ID:
+<b id="adminId">---</b>
+</p>
 
-    if not PAGE_ACCESS_TOKEN:
-        return False
+<p class="small">
+Admin controls are protected by OWNER_ID
+from the server environment.
+</p>
 
-    if not image_url:
-        return False
+</div>
 
-    try:
 
-        response = requests.post(
+<!-- LIVE DASHBOARD -->
 
-            graph_url("me/messages"),
+<div class="card">
 
-            params={
-                "access_token": PAGE_ACCESS_TOKEN
-            },
+<h2>🔴 LIVE DASHBOARD</h2>
 
-            json={
+<p>
+👥 Bot use karne wale users:
+<b id="liveCount">0</b>
+</p>
 
-                "recipient": {
-                    "id": recipient_id
-                },
+<div style="overflow-x:auto">
 
-                "messaging_type": "RESPONSE",
+<table>
 
-                "message": {
+<thead>
 
-                    "attachment": {
+<tr>
+<th>UID</th>
+<th>Messages</th>
+<th>Last Message</th>
+<th>Last Seen</th>
+<th>Status</th>
+</tr>
 
-                        "type": "image",
+</thead>
 
-                        "payload": {
+<tbody id="liveUsers">
 
-                            "url": image_url,
+<tr>
+<td colspan="5">
+Loading...
+</td>
+</tr>
 
-                            "is_reusable": True
+</tbody>
 
-                        }
+</table>
 
-                    }
+</div>
 
-                }
+<p class="small">
+🔄 Live data automatically 5 seconds mein refresh hota hai.
+</p>
 
-            },
+</div>
 
-            timeout=15
-        )
 
-        if not response.ok:
+<!-- USER LOCK -->
 
-            log(
-                f"Image send error "
-                f"{response.status_code}: "
-                f"{response.text[:300]}"
-            )
+<div class="card">
 
-        return response.ok
+<h2>🔐 USER LOCK / UNLOCK</h2>
 
-    except requests.RequestException as exc:
+<input
+id="uid"
+placeholder="User ID">
 
-        log(
-            f"Image request error: {exc}"
-        )
+<div class="btns">
 
-        return False
+<button onclick="userAction('lock')">
+LOCK 🔒
+</button>
 
+<button onclick="userAction('unlock')">
+UNLOCK 🔓
+</button>
 
-# =========================================================
-# OWNER COMMANDS
-#
-# Admin UID panel mein nahi hai.
-# OWNER_ID .env se aayega.
-# =========================================================
+</div>
 
-def owner_command(sender_id, text):
+</div>
 
-    if not OWNER_ID:
-        return False, None
 
-    if str(sender_id) != str(OWNER_ID):
-        return False, None
+<!-- COMMANDS -->
 
-    t = " ".join(
-        str(text).lower().split()
-    )
+<div class="card">
 
-    global BOT_ENABLED
+<h2>📚 COMMANDS</h2>
 
+<pre>
 
-    # BOT ON
-    if t == "bot on":
+╔══════════════════════════════╗
+       👑 RK RAJA BOT 👑
+╚══════════════════════════════╝
 
-        BOT_ENABLED = True
+/help
+→ Complete help menu
 
-        return True, (
-            "🤖 BOT ONLINE 👍"
-        )
+😂 FUN
 
+joke
+funny
+masti
+pagal
+roast
+attitude
+hasao
 
-    # BOT OFF
-    if t == "bot off":
+❤️ LOVE
 
-        BOT_ENABLED = False
+love
+pyaar
+flirt
+romantic
+cute
+babu
+baby
+sona
+shona
+jaan
+janu
+sweet
+miss you
 
-        return True, (
-            "🛑 BOT OFF"
-        )
+🌹 SHAYARI
 
+shayari
+love shayari
+flirt shayari
+romantic shayari
+sad shayari
 
-    # LOCK USER
-    if t.startswith("lock "):
+🥰 ACTION
 
-        uid = t.split(
-            maxsplit=1
-        )[1].strip()
+hug
+kiss
+umma
+ummi
 
-        if not uid:
-            return True, "⚠️ User ID missing."
+🌅 TIME
 
-        LOCKED_USERS.add(uid)
+good morning
+good afternoon
+good evening
+good night
+bye
 
-        return True, (
-            "🔒 User locked successfully."
-        )
+🤖 BOT
 
+bot
+bot bot bot
+spam sticker
 
-    # UNLOCK USER
-    if t.startswith("unlock "):
+👑 RK RAJA
 
-        uid = t.split(
-            maxsplit=1
-        )[1].strip()
+rk
+raja
+rk raja
 
-        if not uid:
-            return True, "⚠️ User ID missing."
+💬 NORMAL CHAT
 
-        LOCKED_USERS.discard(uid)
+Koi bhi normal message bhejo.
+Bot automatic reply karega.
 
-        return True, (
-            "🔓 User unlocked successfully."
-        )
+⚠️ Sirf /help slash ke saath hai.
+Baaki options bina / ke hain.
 
+</pre>
 
-    # LOCKED LIST
-    if t == "locked":
+</div>
 
-        return True, (
-            f"🔒 Locked users: "
-            f"{len(LOCKED_USERS)}"
-        )
 
+<div class="card">
 
-    return False, None
+<h2>🌐 RK RAJA FAMILY</h2>
 
+<pre>
+https://t.me/Akatsuki_rulex
+</pre>
 
-# =========================================================
-# HANDLE MESSAGE
-# =========================================================
+</div>
 
-def handle_message(sender_id, text):
 
-    global BOT_ENABLED
+<div style="
+text-align:center;
+padding:20px;
+opacity:.8;
+">
 
-    if not BOT_ENABLED:
-        return
+👑 RK RAJA BOT 👑
 
+</div>
 
-    # -----------------------------------------------------
-    # LOCKED USER
-    # -----------------------------------------------------
 
-    if str(sender_id) in LOCKED_USERS:
-        log(
-            f"Ignored locked user: "
-            f"{sender_id}"
-        )
-        return
+</div>
 
 
-    # -----------------------------------------------------
-    # ADMIN COMMANDS
-    # -----------------------------------------------------
+<script>
 
-    handled, owner_reply = owner_command(
-        sender_id,
-        text
-    )
 
-    if handled:
+async function refresh(){
 
-        if owner_reply:
-            send_text(
-                sender_id,
-                owner_reply
-            )
+try{
 
-        return
+const response =
+await fetch(
+"/api/status",
+{
+cache:"no-store"
+}
+);
 
+const data =
+await response.json();
 
-    # -----------------------------------------------------
-    # NORMALIZE TEXT
-    # -----------------------------------------------------
 
-    t = " ".join(
-        str(text).lower().strip().split()
-    )
+document.getElementById(
+"server"
+).textContent =
+data.online
+? "ONLINE 🟢"
+: "OFFLINE 🔴";
 
 
-    # -----------------------------------------------------
-    # USER REQUESTED STICKER MODE
-    #
-    # No automatic flooding.
-    # Actual sticker capability depends
-    # on Meta API support.
-    # -----------------------------------------------------
+document.getElementById(
+"bot"
+).textContent =
+data.bot_enabled
+? "ONLINE 🟢"
+: "STOPPED 🔴";
 
-    if t in {
-        "spam sticker",
-        "sticker spam"
-    }:
 
-        send_text(
-            sender_id,
+document.getElementById(
+"messages"
+).textContent =
+data.messages || 0;
 
-            "🎨 Sticker mode requested 😜\n"
-            "Controlled sticker/media action "
-            "can be added when your Meta app "
-            "supports the required media feature."
-        )
 
-        return
+document.getElementById(
+"locked"
+).textContent =
+data.locked_users || 0;
 
 
-    # -----------------------------------------------------
-    # RK RAJA TRIGGER
-    # -----------------------------------------------------
+document.getElementById(
+"botId"
+).textContent =
+data.bot_id || "Not configured";
 
-    if (
-        "rk raja" in t
-        or t == "rkraja"
-    ):
 
-        if RK_RAJA_IMAGE_URL:
+document.getElementById(
+"adminId"
+).textContent =
+data.admin_id || "Not configured";
 
-            send_image(
-                sender_id,
-                RK_RAJA_IMAGE_URL
-            )
 
+const users =
+data.live_users || [];
 
-        send_text(
 
-            sender_id,
+document.getElementById(
+"liveCount"
+).textContent =
+users.length;
 
-            "🌙᯾🙂𝐁ɽ፝֟ɵ͜͡ƙ⃟ɛ͠ɳ💔ϯ•🕊️𝐇ɘ፝֟͜͡ʌ̴ʀ⃞ʈ🩷•ϯ\n\n"
-            "Joine my gc Rk raja Family\n"
-            f"{GROUP_LINK}"
 
-        )
+const tbody =
+document.getElementById(
+"liveUsers"
+);
 
-        return
 
+tbody.innerHTML = "";
 
-    # -----------------------------------------------------
-    # GENERATE NORMAL REPLY
-    # -----------------------------------------------------
 
-    reply = generate_reply(text)
+if(users.length === 0){
 
+tbody.innerHTML = `
+<tr>
+<td colspan="5">
+👀 Abhi koi user tracked nahi hai.
+</td>
+</tr>
+`;
 
-    if reply:
+return;
 
-        send_text(
-            sender_id,
-            reply
-        )
+}
 
 
-    # -----------------------------------------------------
-    # STATS
-    # -----------------------------------------------------
+users.reverse().forEach(
+user => {
 
-    with STATE_LOCK:
+const row =
+document.createElement(
+"tr"
+);
 
-        STATS["messages"] += 1
+row.innerHTML = `
 
-        STATS[
-            str(sender_id)
-        ] += 1
+<td>${escapeHtml(
+user.uid
+)}</td>
 
+<td>${user.messages}</td>
 
-# =========================================================
-# DASHBOARD
-# =========================================================
+<td>${escapeHtml(
+user.last_message || "-"
+)}</td>
 
-@app.get("/")
-def index():
+<td>${escapeHtml(
+user.last_seen || "-"
+)}</td>
 
-    return render_template(
-        "index.html"
-    )
+<td class="live">
+🟢 LIVE
+</td>
 
+`;
 
-# =========================================================
-# HEALTH
-# =========================================================
+tbody.appendChild(row);
 
-@app.get("/health")
-def health():
+});
 
-    return jsonify({
 
-        "status": "ok",
+}catch(error){
 
-        "bot_enabled":
-            BOT_ENABLED,
+document.getElementById(
+"server"
+).textContent =
+"OFFLINE 🔴";
 
-        "uptime_seconds":
-            int(
-                time.time()
-                - START_TIME
-            )
+}
 
-    })
+}
 
 
-# =========================================================
-# STATUS API
-# =========================================================
+function escapeHtml(value){
 
-@app.get("/api/status")
-def status():
+return String(value)
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;")
+.replaceAll('"',"&quot;")
+.replaceAll("'","&#039;");
 
-    with STATE_LOCK:
+}
 
-        message_count = (
-            STATS["messages"]
-        )
 
-    return jsonify({
+async function botAction(action){
 
-        "online": True,
+try{
 
-        "bot_enabled":
-            BOT_ENABLED,
+const response =
+await fetch(
+"/api/bot/"+action,
+{
+method:"POST"
+}
+);
 
-        "messages":
-            message_count,
+const data =
+await response.json();
 
-        "locked_users":
-            len(LOCKED_USERS)
 
-    })
+if(data.ok){
 
+alert(
+action === "start"
+? "🤖 BOT ONLINE 👍"
+: "🛑 BOT STOPPED"
+);
 
-# =========================================================
-# START / STOP
-# =========================================================
+refresh();
 
-@app.post("/api/bot/<action>")
-def bot_action(action):
+}else{
 
-    global BOT_ENABLED
+alert(
+"❌ Action failed"
+);
 
+}
 
-    if action == "start":
+}catch(error){
 
-        BOT_ENABLED = True
+alert(
+"❌ Server error"
+);
 
-        log(
-            "Bot started from dashboard."
-        )
+}
 
-        return jsonify({
+}
 
-            "ok": True,
 
-            "bot_enabled": True
+async function userAction(action){
 
-        })
+const input =
+document.getElementById(
+"uid"
+);
 
+const uid =
+input.value.trim();
 
-    if action == "stop":
 
-        BOT_ENABLED = False
+if(!uid){
 
-        log(
-            "Bot stopped from dashboard."
-        )
+alert(
+"⚠️ User ID daalo."
+);
 
-        return jsonify({
+return;
 
-            "ok": True,
+}
 
-            "bot_enabled": False
 
-        })
+try{
 
+const response =
+await fetch(
+"/api/user/"+action,
+{
+method:"POST",
 
-    return jsonify({
+headers:{
+"Content-Type":
+"application/json"
+},
 
-        "ok": False,
+body:
+JSON.stringify({
+user_id:uid
+})
+}
+);
 
-        "error":
-            "unknown action"
 
-    }), 400
+const data =
+await response.json();
 
 
-# =========================================================
-# USER LOCK / UNLOCK
-# =========================================================
+if(data.ok){
 
-@app.post("/api/user/<action>")
-def user_action(action):
+alert(
+action === "lock"
+? "🔒 User locked."
+: "🔓 User unlocked."
+);
 
-    data = (
-        request.get_json(
-            silent=True
-        )
-        or {}
-    )
+input.value="";
 
-    uid = str(
-        data.get(
-            "user_id",
-            ""
-        )
-    ).strip()
+refresh();
 
+}else{
 
-    if not uid:
+alert(
+"❌ "+data.error
+);
 
-        return jsonify({
+}
 
-            "ok": False,
+}catch(error){
 
-            "error":
-                "user_id required"
+alert(
+"❌ Server error"
+);
 
-        }), 400
+}
 
+}
 
-    if action == "lock":
 
-        LOCKED_USERS.add(uid)
+refresh();
 
-        return jsonify({
+setInterval(
+refresh,
+5000
+);
 
-            "ok": True,
+</script>
 
-            "locked": True
-
-        })
-
-
-    if action == "unlock":
-
-        LOCKED_USERS.discard(uid)
-
-        return jsonify({
-
-            "ok": True,
-
-            "locked": False
-
-        })
-
-
-    return jsonify({
-
-        "ok": False,
-
-        "error":
-            "unknown action"
-
-    }), 400
-
-
-# =========================================================
-# META WEBHOOK VERIFY
-# =========================================================
-
-@app.route(
-    "/webhook",
-    methods=["GET"]
-)
-def webhook_verify():
-
-    mode = request.args.get(
-        "hub.mode"
-    )
-
-    token = request.args.get(
-        "hub.verify_token"
-    )
-
-    challenge = request.args.get(
-        "hub.challenge"
-    )
-
-
-    if (
-        mode == "subscribe"
-        and token == VERIFY_TOKEN
-    ):
-
-        return (
-            challenge or "",
-            200
-        )
-
-
-    return (
-        "Forbidden",
-        403
-    )
-
-
-# =========================================================
-# META WEBHOOK RECEIVE
-# =========================================================
-
-@app.route(
-    "/webhook",
-    methods=["POST"]
-)
-def webhook_receive():
-
-    payload = (
-        request.get_json(
-            silent=True
-        )
-        or {}
-    )
-
-
-    if payload.get(
-        "object"
-    ) != "page":
-
-        return (
-            "EVENT_RECEIVED",
-            200
-        )
-
-
-    for entry in payload.get(
-        "entry",
-        []
-    ):
-
-        for event in entry.get(
-            "messaging",
-            []
-        ):
-
-            sender = event.get(
-                "sender",
-                {}
-            )
-
-            sender_id = sender.get(
-                "id"
-            )
-
-            message = event.get(
-                "message",
-                {}
-            )
-
-            text = message.get(
-                "text"
-            )
-
-
-            if (
-                sender_id
-                and text
-            ):
-
-                log(
-                    f"Message from "
-                    f"{sender_id}: "
-                    f"{text}"
-                )
-
-                handle_message(
-                    sender_id,
-                    text
-                )
-
-
-    return (
-        "EVENT_RECEIVED",
-        200
-    )
-
-
-# =========================================================
-# RUN
-# =========================================================
-
-if __name__ == "__main__":
-
-    app.run(
-
-        host="0.0.0.0",
-
-        port=int(
-            os.getenv(
-                "PORT",
-                "25042"
-            )
-        ),
-
-        debug=False
-
-    )
+</body>
+                        </html>
