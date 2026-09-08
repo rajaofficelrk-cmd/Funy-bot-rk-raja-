@@ -8,416 +8,310 @@
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
             font-family: Arial, sans-serif;
-            background: #0b0f19;
+            min-height: 100vh;
+            background: #080b12;
             color: #fff;
-        }
-
-        .header {
             padding: 20px;
-            background: #111827;
-            border-bottom: 1px solid #263044;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 25px;
-        }
-
-        .header p {
-            margin: 6px 0 0;
-            color: #9ca3af;
         }
 
         .container {
-            max-width: 1100px;
+            width: 100%;
+            max-width: 520px;
             margin: auto;
-            padding: 20px;
-        }
-
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
         }
 
         .card {
-            background: #111827;
-            border: 1px solid #263044;
-            border-radius: 15px;
-            padding: 18px;
+            background: #111722;
+            border: 1px solid #273044;
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 15px 40px rgba(0,0,0,.35);
         }
 
-        .card small {
-            color: #9ca3af;
+        .title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 22px;
         }
 
-        .value {
-            margin-top: 8px;
-            font-size: 25px;
-            font-weight: bold;
+        .input-box {
+            margin-bottom: 14px;
         }
 
-        .online {
-            color: #22c55e;
-        }
-
-        .offline {
-            color: #ef4444;
-        }
-
-        .panel {
-            margin-top: 20px;
-            background: #111827;
-            border: 1px solid #263044;
-            border-radius: 15px;
-            padding: 20px;
-        }
-
-        .panel h2 {
-            margin-top: 0;
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            color: #aeb7c9;
         }
 
         input {
             width: 100%;
             padding: 13px;
-            margin: 7px 0 12px;
-            border: 1px solid #374151;
             border-radius: 10px;
-            background: #0b0f19;
+            border: 1px solid #303a50;
+            background: #080c14;
             color: white;
             outline: none;
+            font-size: 15px;
+        }
+
+        input:focus {
+            border-color: #667cff;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
         }
 
         button {
+            flex: 1;
             border: 0;
-            padding: 12px 18px;
-            border-radius: 10px;
+            border-radius: 11px;
+            padding: 13px;
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
             cursor: pointer;
-            font-weight: bold;
-            margin: 4px;
         }
 
         .start {
-            background: #22c55e;
-            color: #06110a;
+            background: #16803c;
         }
 
         .stop {
-            background: #ef4444;
-            color: white;
+            background: #b32635;
         }
 
-        .save {
-            background: #3b82f6;
-            color: white;
+        button:active {
+            transform: scale(.98);
+        }
+
+        .dashboard-title {
+            text-align: center;
+            margin: 12px 0 15px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .stat {
+            background: #0b1019;
+            border: 1px solid #252e41;
+            border-radius: 12px;
+            padding: 15px 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .stat-name {
+            font-size: 12px;
+            color: #9da8bb;
+        }
+
+        .online {
+            color: #35dc79;
+        }
+
+        .section {
+            margin-top: 22px;
+        }
+
+        .section h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .features {
+            display: grid;
+            gap: 9px;
+        }
+
+        .feature {
+            background: #0b1019;
+            border: 1px solid #252e41;
+            border-radius: 10px;
+            padding: 13px;
+            font-size: 14px;
+        }
+
+        .logs {
+            margin-top: 20px;
+            background: #080c14;
+            border: 1px solid #252e41;
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 180px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #aeb7c9;
         }
 
         .log {
-            max-height: 300px;
-            overflow-y: auto;
-            background: #080c14;
-            border-radius: 10px;
-            padding: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #171e2b;
         }
 
-        .log-item {
-            padding: 9px;
-            border-bottom: 1px solid #1f2937;
-            font-size: 13px;
-        }
+        @media (max-width: 400px) {
+            body {
+                padding: 10px;
+            }
 
-        .user {
-            padding: 12px;
-            margin: 7px 0;
-            background: #0b0f19;
-            border-radius: 10px;
-            border: 1px solid #1f2937;
-        }
+            .card {
+                padding: 16px;
+            }
 
-        .user-id {
-            font-weight: bold;
-        }
-
-        .muted {
-            color: #9ca3af;
-            font-size: 13px;
-        }
-
-        .warning {
-            color: #fbbf24;
-            font-size: 13px;
-            line-height: 1.5;
+            .stats {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 
 <body>
 
-<div class="header">
-    <h1>🤖 RK RAJA BOT</h1>
-    <p>Messenger Bot Dashboard</p>
-</div>
-
 <div class="container">
+    <div class="card">
 
-    <div class="cards">
-
-        <div class="card">
-            <small>Bot Status</small>
-            <div id="botStatus" class="value">Loading...</div>
+        <div class="title">
+            RK RAJA BOT
         </div>
 
-        <div class="card">
-            <small>Users</small>
-            <div id="users" class="value">0</div>
+        <div class="input-box">
+            <label>Bot ID</label>
+            <input
+                id="botId"
+                type="text"
+                placeholder="Enter Bot ID"
+            >
         </div>
 
-        <div class="card">
-            <small>Messages</small>
-            <div id="messages" class="value">0</div>
+        <div class="input-box">
+            <label>Admin ID</label>
+            <input
+                id="adminId"
+                type="text"
+                placeholder="Enter Admin ID"
+            >
         </div>
 
-        <div class="card">
-            <small>Uptime</small>
-            <div id="uptime" class="value">0s</div>
+        <div class="buttons">
+            <button class="start" onclick="botAction('start')">
+                🟢 START
+            </button>
+
+            <button class="stop" onclick="botAction('stop')">
+                🔴 STOP
+            </button>
         </div>
 
-    </div>
+        <div class="dashboard-title">
+            📊 LIVE DASHBOARD
+        </div>
 
+        <div class="stats">
 
-    <div class="panel">
+            <div class="stat">
+                <span class="stat-value" id="users">0</span>
+                <span class="stat-name">Users</span>
+            </div>
 
-        <h2>🎮 Bot Control</h2>
+            <div class="stat">
+                <span class="stat-value" id="messages">0</span>
+                <span class="stat-name">Messages</span>
+            </div>
 
-        <button class="start" onclick="botAction('start')">
-            🟢 START
-        </button>
+            <div class="stat">
+                <span class="stat-value online" id="status">
+                    ONLINE
+                </span>
+                <span class="stat-name">Status</span>
+            </div>
 
-        <button class="stop" onclick="botAction('stop')">
-            🔴 STOP
-        </button>
+        </div>
 
-        <p class="muted">
-            START ke baad bot server process ke alive rehne tak continuously chalega.
-        </p>
+        <div class="section">
+            <h3>💬 Replies / Shayari</h3>
 
-    </div>
+            <div class="features">
+                <div class="feature">💬 Automatic Replies</div>
+                <div class="feature">❤️ Love / Baby / Jaan</div>
+                <div class="feature">😂 Funny / Jokes</div>
+                <div class="feature">😎 Attitude</div>
+                <div class="feature">😔 Sad / Shayari</div>
+                <div class="feature">🌙 Good Night</div>
+                <div class="feature">👋 Bye</div>
+            </div>
+        </div>
 
+        <div class="section">
+            <h3>📋 Live Logs</h3>
 
-    <div class="panel">
-
-        <h2>👑 Admin Settings</h2>
-
-        <label>Admin UID</label>
-        <input
-            id="adminId"
-            placeholder="Admin Facebook UID"
-        >
-
-        <button class="save" onclick="saveAdmin()">
-            💾 SAVE ADMIN
-        </button>
-
-    </div>
-
-
-    <div class="panel">
-
-        <h2>⚙️ Configuration</h2>
-
-        <label>Fight File Name</label>
-        <input
-            id="fightFile"
-            placeholder="Example: fight.txt"
-        >
-
-        <label>AppState Configuration</label>
-        <input
-            id="appstate"
-            type="text"
-            placeholder="Configuration/reference only"
-        >
-
-        <p class="warning">
-            ⚠️ AppState/cookies ko personal Facebook-account login ya automation
-            ke liye use nahi kiya ja raha. Bot official Meta Page API ke through
-            operate karta hai.
-        </p>
-
-        <button class="save" onclick="saveConfig()">
-            💾 SAVE CONFIG
-        </button>
-
-    </div>
-
-
-    <div class="panel">
-
-        <h2>👥 Live Users</h2>
-
-        <div id="userList">
-            Loading...
+            <div class="logs" id="logs">
+                <div class="log">🤖 RK RAJA BOT dashboard loaded.</div>
+            </div>
         </div>
 
     </div>
-
-
-    <div class="panel">
-
-        <h2>📜 Live Logs</h2>
-
-        <div id="logs" class="log">
-            Loading...
-        </div>
-
-    </div>
-
 </div>
-
 
 <script>
+    async function botAction(action) {
+        try {
+            const response = await fetch(
+                "/api/bot/" + action,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
 
-async function loadStatus() {
+            const data = await response.json();
 
-    try {
+            if (data.ok) {
+                addLog(
+                    action === "start"
+                        ? "🟢 BOT STARTED"
+                        : "🔴 BOT STOPPED"
+                );
 
-        const response = await fetch("/api/status");
-        const data = await response.json();
-
-        const botStatus = document.getElementById("botStatus");
-
-        if (data.enabled) {
-            botStatus.textContent = "🟢 ONLINE";
-            botStatus.className = "value online";
-        } else {
-            botStatus.textContent = "🔴 STOPPED";
-            botStatus.className = "value offline";
-        }
-
-        document.getElementById("users").textContent =
-            data.users ?? 0;
-
-        document.getElementById("messages").textContent =
-            data.messages ?? 0;
-
-        document.getElementById("uptime").textContent =
-            formatUptime(data.uptime_seconds ?? 0);
-
-
-        if (data.admin_id) {
-            document.getElementById("adminId").value =
-                data.admin_id;
-        }
-
-        if (data.fight_file) {
-            document.getElementById("fightFile").value =
-                data.fight_file;
-        }
-
-
-        const users = data.users_data || [];
-
-        if (users.length === 0) {
-
-            document.getElementById("userList").innerHTML =
-                '<p class="muted">Abhi koi user message nahi hai.</p>';
-
-        } else {
-
-            document.getElementById("userList").innerHTML =
-                users.map(user => `
-                    <div class="user">
-                        <div class="user-id">
-                            👤 ${escapeHtml(user.uid)}
-                        </div>
-
-                        <div class="muted">
-                            Messages: ${user.messages}
-                        </div>
-
-                        <div class="muted">
-                            Last: ${escapeHtml(user.last_message || "")}
-                        </div>
-
-                        <div class="muted">
-                            Seen: ${escapeHtml(user.last_seen || "")}
-                        </div>
-                    </div>
-                `).join("");
-        }
-
-
-        const logs = data.logs || [];
-
-        if (logs.length === 0) {
-
-            document.getElementById("logs").innerHTML =
-                '<div class="muted">No logs yet.</div>';
-
-        } else {
-
-            document.getElementById("logs").innerHTML =
-                logs.map(log => `
-                    <div class="log-item">
-                        <b>${escapeHtml(log.time)}</b>
-                        &nbsp;
-                        ${escapeHtml(log.message)}
-                    </div>
-                `).join("");
-        }
-
-    } catch (error) {
-
-        document.getElementById("botStatus").textContent =
-            "⚠️ ERROR";
-
-        console.error(error);
-    }
-}
-
-
-async function botAction(action) {
-
-    try {
-
-        const response = await fetch(
-            "/api/bot/" + action,
-            {
-                method: "POST"
+                updateStatus();
             }
-        );
-
-        const data = await response.json();
-
-        if (!data.ok) {
-            alert(data.error || "Action failed");
-            return;
+        } catch (error) {
+            addLog("❌ Bot action failed");
         }
-
-        await loadStatus();
-
-    } catch (error) {
-
-        alert("Server connection failed");
     }
-}
 
+    async function saveAdmin() {
+        const adminId =
+            document.getElementById("adminId").value.trim();
 
-async function saveAdmin() {
+        if (!adminId) return;
 
-    const adminId =
-        document.getElementById("adminId").value.trim();
-
-    try {
-
-        const response = await fetch(
-            "/api/admin",
-            {
+        try {
+            await fetch("/api/admin", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -425,106 +319,87 @@ async function saveAdmin() {
                 body: JSON.stringify({
                     admin_id: adminId
                 })
-            }
-        );
-
-        const data = await response.json();
-
-        alert(
-            data.ok
-                ? "👑 Admin UID saved"
-                : "❌ Save failed"
-        );
-
-        await loadStatus();
-
-    } catch (error) {
-
-        alert("Server connection failed");
+            });
+        } catch (error) {
+            addLog("❌ Admin ID save failed");
+        }
     }
-}
 
+    async function updateStatus() {
+        try {
+            const response =
+                await fetch("/api/status");
 
-async function saveConfig() {
+            const data =
+                await response.json();
 
-    const fightFile =
-        document.getElementById("fightFile").value.trim();
+            document.getElementById("users").textContent =
+                data.users ?? 0;
 
-    const appstate =
-        document.getElementById("appstate").value.trim();
+            document.getElementById("messages").textContent =
+                data.messages ?? 0;
 
-    try {
+            const status =
+                document.getElementById("status");
 
-        const response = await fetch(
-            "/api/config",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    fight_file: fightFile,
-                    appstate: appstate
-                })
+            status.textContent =
+                data.online
+                    ? (data.enabled ? "ONLINE" : "STOPPED")
+                    : "OFFLINE";
+
+            status.className =
+                data.online && data.enabled
+                    ? "stat-value online"
+                    : "stat-value";
+
+            if (data.logs) {
+                const logs =
+                    document.getElementById("logs");
+
+                logs.innerHTML =
+                    data.logs.map(log =>
+                        `<div class="log">
+                            [${escapeHtml(log.time)}]
+                            ${escapeHtml(log.message)}
+                        </div>`
+                    ).join("");
             }
-        );
 
-        const data = await response.json();
-
-        alert(
-            data.ok
-                ? "⚙️ Configuration saved"
-                : "❌ Save failed"
-        );
-
-        await loadStatus();
-
-    } catch (error) {
-
-        alert("Server connection failed");
+        } catch (error) {
+            document.getElementById("status")
+                .textContent = "OFFLINE";
+        }
     }
-}
 
+    function addLog(message) {
+        const logs =
+            document.getElementById("logs");
 
-function formatUptime(seconds) {
+        const item =
+            document.createElement("div");
 
-    seconds = Number(seconds);
+        item.className = "log";
+        item.textContent = message;
 
-    const days =
-        Math.floor(seconds / 86400);
+        logs.prepend(item);
+    }
 
-    seconds %= 86400;
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
 
-    const hours =
-        Math.floor(seconds / 3600);
+    document
+        .getElementById("adminId")
+        .addEventListener("change", saveAdmin);
 
-    seconds %= 3600;
+    updateStatus();
 
-    const minutes =
-        Math.floor(seconds / 60);
-
-    seconds =
-        Math.floor(seconds % 60);
-
-    return `${days}d ${hours}h ${minutes}m ${seconds}s`;
-}
-
-
-function escapeHtml(value) {
-
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-
-loadStatus();
-
-setInterval(loadStatus, 3000);
-
+    setInterval(updateStatus, 3000);
 </script>
 
 </body>
