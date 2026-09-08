@@ -1,291 +1,221 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport"
-content="width=device-width,initial-scale=1">
-
-<title>✨ RK RAJA BOT PANEL ✨</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RK Raja Bot Dashboard</title>
 
 <style>
-
-*{
-box-sizing:border-box;
+* {
+    box-sizing: border-box;
 }
 
-body{
-margin:0;
-padding:15px;
-min-height:100vh;
-font-family:Arial,sans-serif;
-color:white;
-background:linear-gradient(
-135deg,
-#ff4081,
-#9c27b0,
-#2979ff
-);
-background-size:300% 300%;
-animation:bg 12s infinite;
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #080b14;
+    color: #fff;
 }
 
-@keyframes bg{
-0%{background-position:0 50%}
-50%{background-position:100% 50%}
-100%{background-position:0 50%}
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
 }
 
-.wrap{
-max-width:1050px;
-margin:auto;
+h1 {
+    margin-bottom: 5px;
 }
 
-.hero{
-text-align:center;
-padding:15px;
+.card {
+    background: #111725;
+    border: 1px solid #273149;
+    border-radius: 18px;
+    padding: 18px;
+    margin: 15px 0;
 }
 
-.hero h1{
-margin:0;
-font-size:clamp(30px,8vw,55px);
-text-shadow:0 0 20px white;
+.grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
 }
 
-.hero p{
-color:#ffe082;
-font-weight:bold;
+input,
+textarea,
+button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #35415e;
+    background: #080d18;
+    color: white;
+    margin-top: 8px;
 }
 
-.card{
-background:#ffffff22;
-border:1px solid #ffffff44;
-border-radius:22px;
-padding:18px;
-margin:15px 0;
-backdrop-filter:blur(12px);
-box-shadow:0 10px 35px #0003;
+textarea {
+    min-height: 120px;
+    resize: vertical;
 }
 
-.status{
-display:grid;
-grid-template-columns:repeat(
-auto-fit,
-minmax(170px,1fr)
-);
-gap:10px;
+button {
+    cursor: pointer;
+    font-weight: bold;
 }
 
-.badge{
-padding:14px;
-border-radius:15px;
-background:#0004;
-text-align:center;
-font-weight:bold;
+.start {
+    background: #123d27;
 }
 
-.btns{
-display:flex;
-gap:12px;
-justify-content:center;
-flex-wrap:wrap;
-margin-top:18px;
+.stop {
+    background: #451c25;
 }
 
-button{
-border:0;
-border-radius:50px;
-padding:13px 25px;
-font-size:16px;
-font-weight:bold;
-color:white;
-cursor:pointer;
-background:linear-gradient(
-90deg,
-#ff4081,
-#7c4dff
-);
+.save {
+    background: #243b67;
 }
 
-button.stop{
-background:linear-gradient(
-90deg,
-#f44336,
-#b71c1c
-);
+.badge {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 20px;
+    background: #1b2940;
 }
 
-input{
-width:100%;
-padding:13px;
-border:0;
-outline:none;
-border-radius:12px;
-font-size:16px;
-background:#ffffff30;
-color:white;
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
 }
 
-input::placeholder{
-color:#ffffffbb;
+th,
+td {
+    padding: 10px;
+    border-bottom: 1px solid #283147;
+    text-align: left;
+    font-size: 13px;
 }
 
-pre{
-white-space:pre-wrap;
-word-break:break-word;
-line-height:1.55;
-font-size:14px;
+.log {
+    background: #080d17;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 8px;
+    font-size: 13px;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-font-size:13px;
+.small {
+    color: #9da9c2;
+    font-size: 12px;
 }
 
-th,td{
-padding:10px 6px;
-border-bottom:1px solid #ffffff33;
-text-align:left;
+.warning {
+    color: #ffca70;
+    font-size: 12px;
 }
-
-.live{
-color:#69f0ae;
-font-weight:bold;
-}
-
-.small{
-opacity:.8;
-font-size:13px;
-}
-
-@media(max-width:600px){
-
-body{
-padding:8px;
-}
-
-.card{
-padding:14px;
-}
-
-button{
-width:100%;
-}
-
-table{
-font-size:11px;
-}
-
-}
-
 </style>
 </head>
 
 <body>
 
-<div class="wrap">
+<div class="container">
 
-
-<div class="hero">
-
-<h1>✨ RK RAJA BOT ✨</h1>
-
-<p>
-Facebook Page Messenger Control Center
-</p>
-
+<h1>🤖 RK Raja Bot</h1>
+<div class="small">
+Messenger Auto Bot Dashboard
 </div>
-
-
-<!-- STATUS -->
 
 <div class="card">
+<h2>🟢 Bot Status</h2>
 
-<h2>🤖 BOT STATUS</h2>
-
-<div class="status">
-
-<div class="badge">
-🟢 SERVER<br>
-<span id="server">CHECKING</span>
+<div class="grid">
+<div>
+<span class="badge" id="status">Checking...</span>
 </div>
 
-<div class="badge">
-🤖 BOT<br>
-<span id="bot">CHECKING</span>
+<div>
+<strong>Messages</strong>
+<div id="messages">0</div>
 </div>
 
-<div class="badge">
-💬 MESSAGES<br>
-<span id="messages">0</span>
+<div>
+<strong>Live Users</strong>
+<div id="users">0</div>
 </div>
 
-<div class="badge">
-🔒 LOCKED<br>
-<span id="locked">0</span>
+<div>
+<strong>Uptime</strong>
+<div id="uptime">0s</div>
+</div>
 </div>
 
-</div>
-
-
-<div class="btns">
-
-<button onclick="botAction('start')">
-START 👑
+<div class="grid">
+<button class="start" onclick="botAction('start')">
+🟢 START BOT
 </button>
 
-<button
-class="stop"
-onclick="botAction('stop')">
-STOP 🛑
+<button class="stop" onclick="botAction('stop')">
+🔴 STOP BOT
 </button>
-
 </div>
-
 </div>
-
-
-<!-- BOT / ADMIN -->
 
 <div class="card">
+<h2>🤖 Bot Details</h2>
 
-<h2>🆔 BOT DETAILS</h2>
+<label>Bot ID</label>
+<input id="botId" readonly>
 
-<p>
-🤖 Bot ID:
-<b id="botId">---</b>
-</p>
-
-<p>
-👑 Admin ID:
-<b id="adminId">---</b>
-</p>
-
-<p class="small">
-Admin controls are protected by OWNER_ID
-from the server environment.
-</p>
-
+<label>Admin ID</label>
+<input id="adminId" readonly>
 </div>
 
+<div class="card">
+<h2>🍪 AppState / Cookies</h2>
 
-<!-- LIVE DASHBOARD -->
+<textarea
+id="appstate"
+placeholder="AppState / Cookies paste field
+(UI/config only — not used for Facebook login)">
+</textarea>
+
+<div class="warning">
+⚠️ This field is only a dashboard/config field.
+It is not used for personal Facebook login or session automation.
+</div>
+</div>
 
 <div class="card">
+<h2>⚔️ Fight Mode</h2>
 
-<h2>🔴 LIVE DASHBOARD</h2>
+<input
+type="file"
+id="fightFile"
+accept=".json,.txt"
+onchange="selectFightFile(this)">
 
-<p>
-👥 Bot use karne wale users:
-<b id="liveCount">0</b>
-</p>
+<div class="small" id="fightName">
+No file selected
+</div>
 
-<div style="overflow-x:auto">
+<div class="warning">
+Only safe configuration metadata is recorded.
+Uploaded code is never executed.
+</div>
+</div>
+
+<div class="card">
+<button class="save" onclick="saveConfig()">
+💾 SAVE DASHBOARD CONFIG
+</button>
+</div>
+
+<div class="card">
+<h2>👥 Live Users / UID</h2>
 
 <table>
-
 <thead>
-
 <tr>
 <th>UID</th>
 <th>Messages</th>
@@ -293,452 +223,172 @@ from the server environment.
 <th>Last Seen</th>
 <th>Status</th>
 </tr>
-
 </thead>
 
-<tbody id="liveUsers">
-
+<tbody id="usersTable">
 <tr>
-<td colspan="5">
-Loading...
-</td>
+<td colspan="5">Waiting...</td>
 </tr>
-
 </tbody>
-
 </table>
 
+<div class="small">
+Only users/conversation events actually supplied by the
+Messenger webhook are shown. Arbitrary Facebook group discovery
+is not performed.
 </div>
-
-<p class="small">
-🔄 Live data automatically 5 seconds mein refresh hota hai.
-</p>
-
 </div>
-
-
-<!-- USER LOCK -->
 
 <div class="card">
-
-<h2>🔐 USER LOCK / UNLOCK</h2>
-
-<input
-id="uid"
-placeholder="User ID">
-
-<div class="btns">
-
-<button onclick="userAction('lock')">
-LOCK 🔒
-</button>
-
-<button onclick="userAction('unlock')">
-UNLOCK 🔓
-</button>
-
+<h2>📜 Live Logs</h2>
+<div id="logs"></div>
 </div>
-
-</div>
-
-
-<!-- COMMANDS -->
 
 <div class="card">
+<h2>📚 Commands</h2>
 
-<h2>📚 COMMANDS</h2>
-
-<pre>
-
-╔══════════════════════════════╗
-       👑 RK RAJA BOT 👑
-╚══════════════════════════════╝
-
-/help
-→ Complete help menu
-
-😂 FUN
-
-joke
-funny
-masti
-pagal
-roast
-attitude
-hasao
-
-❤️ LOVE
-
-love
-pyaar
-flirt
-romantic
-cute
-babu
-baby
-sona
-shona
-jaan
-janu
-sweet
-miss you
-
-🌹 SHAYARI
-
-shayari
-love shayari
-flirt shayari
-romantic shayari
-sad shayari
-
-🥰 ACTION
-
-hug
-kiss
-umma
-ummi
-
-🌅 TIME
-
-good morning
-good afternoon
-good evening
-good night
-bye
-
-🤖 BOT
-
-bot
-bot bot bot
-spam sticker
-
-👑 RK RAJA
-
-rk
-raja
-rk raja
-
-💬 NORMAL CHAT
-
-Koi bhi normal message bhejo.
-Bot automatic reply karega.
-
-⚠️ Sirf /help slash ke saath hai.
-Baaki options bina / ke hain.
-
-</pre>
-
+<div class="small">
+help • joke • love • baby • babu • sona • shona • jaan • janu<br>
+good morning • good afternoon • good evening • good night<br>
+bye • bot • RK Raja • sad • sorry • thanks
+</div>
 </div>
 
-
-<div class="card">
-
-<h2>🌐 RK RAJA FAMILY</h2>
-
-<pre>
-https://t.me/Akatsuki_rulex
-</pre>
-
 </div>
-
-
-<div style="
-text-align:center;
-padding:20px;
-opacity:.8;
-">
-
-👑 RK RAJA BOT 👑
-
-</div>
-
-
-</div>
-
 
 <script>
 
+let fightFileName = "";
 
-async function refresh(){
-
-try{
-
-const response =
-await fetch(
-"/api/status",
-{
-cache:"no-store"
-}
-);
-
-const data =
-await response.json();
-
-
-document.getElementById(
-"server"
-).textContent =
-data.online
-? "ONLINE 🟢"
-: "OFFLINE 🔴";
-
-
-document.getElementById(
-"bot"
-).textContent =
-data.bot_enabled
-? "ONLINE 🟢"
-: "STOPPED 🔴";
-
-
-document.getElementById(
-"messages"
-).textContent =
-data.messages || 0;
-
-
-document.getElementById(
-"locked"
-).textContent =
-data.locked_users || 0;
-
-
-document.getElementById(
-"botId"
-).textContent =
-data.bot_id || "Not configured";
-
-
-document.getElementById(
-"adminId"
-).textContent =
-data.admin_id || "Not configured";
-
-
-const users =
-data.live_users || [];
-
-
-document.getElementById(
-"liveCount"
-).textContent =
-users.length;
-
-
-const tbody =
-document.getElementById(
-"liveUsers"
-);
-
-
-tbody.innerHTML = "";
-
-
-if(users.length === 0){
-
-tbody.innerHTML = `
-<tr>
-<td colspan="5">
-👀 Abhi koi user tracked nahi hai.
-</td>
-</tr>
-`;
-
-return;
-
+function esc(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
+async function loadStatus() {
 
-users.reverse().forEach(
-user => {
+    try {
 
-const row =
-document.createElement(
-"tr"
-);
+        const r = await fetch("/api/status");
+        const d = await r.json();
 
-row.innerHTML = `
+        document.getElementById("status").textContent =
+            d.bot_enabled
+                ? "🟢 ONLINE"
+                : "🔴 OFFLINE";
 
-<td>${escapeHtml(
-user.uid
-)}</td>
+        document.getElementById("messages").textContent =
+            d.messages;
 
-<td>${user.messages}</td>
+        document.getElementById("users").textContent =
+            d.live_users.length;
 
-<td>${escapeHtml(
-user.last_message || "-"
-)}</td>
+        document.getElementById("uptime").textContent =
+            d.uptime + "s";
 
-<td>${escapeHtml(
-user.last_seen || "-"
-)}</td>
+        document.getElementById("botId").value =
+            d.bot_id || "";
 
-<td class="live">
-🟢 LIVE
-</td>
+        document.getElementById("adminId").value =
+            d.admin_id || "";
 
-`;
+        renderUsers(d.live_users);
+        renderLogs(d.logs);
 
-tbody.appendChild(row);
+    } catch (e) {
 
-});
-
-
-}catch(error){
-
-document.getElementById(
-"server"
-).textContent =
-"OFFLINE 🔴";
-
+        document.getElementById("status").textContent =
+            "🔴 SERVER ERROR";
+    }
 }
 
+function renderUsers(users) {
+
+    const table =
+        document.getElementById("usersTable");
+
+    if (!users.length) {
+
+        table.innerHTML =
+            '<tr><td colspan="5">No live users</td></tr>';
+
+        return;
+    }
+
+    table.innerHTML = users.map(u => `
+        <tr>
+            <td>${esc(u.uid)}</td>
+            <td>${esc(u.messages)}</td>
+            <td>${esc(u.last_message)}</td>
+            <td>${esc(u.last_seen)}</td>
+            <td>${esc(u.status)}</td>
+        </tr>
+    `).join("");
 }
 
+function renderLogs(logs) {
 
-function escapeHtml(value){
-
-return String(value)
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;")
-.replaceAll('"',"&quot;")
-.replaceAll("'","&#039;");
-
+    document.getElementById("logs").innerHTML =
+        logs.map(x => `
+            <div class="log">
+                [${esc(x.time)}] ${esc(x.text)}
+            </div>
+        `).join("");
 }
 
+async function botAction(action) {
 
-async function botAction(action){
+    await fetch("/api/bot/" + action, {
+        method: "POST"
+    });
 
-try{
-
-const response =
-await fetch(
-"/api/bot/"+action,
-{
-method:"POST"
-}
-);
-
-const data =
-await response.json();
-
-
-if(data.ok){
-
-alert(
-action === "start"
-? "🤖 BOT ONLINE 👍"
-: "🛑 BOT STOPPED"
-);
-
-refresh();
-
-}else{
-
-alert(
-"❌ Action failed"
-);
-
+    loadStatus();
 }
 
-}catch(error){
+function selectFightFile(input) {
 
-alert(
-"❌ Server error"
-);
+    if (!input.files.length) {
+        fightFileName = "";
+        document.getElementById("fightName").textContent =
+            "No file selected";
+        return;
+    }
 
+    fightFileName = input.files[0].name;
+
+    document.getElementById("fightName").textContent =
+        "Selected: " + fightFileName;
 }
 
+async function saveConfig() {
+
+    const appstate =
+        document.getElementById("appstate").value;
+
+    await fetch("/api/config", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            appstate: appstate,
+            fight_file: fightFileName
+        })
+    });
+
+    alert("✅ Dashboard configuration saved");
+    loadStatus();
 }
 
+loadStatus();
 
-async function userAction(action){
-
-const input =
-document.getElementById(
-"uid"
-);
-
-const uid =
-input.value.trim();
-
-
-if(!uid){
-
-alert(
-"⚠️ User ID daalo."
-);
-
-return;
-
-}
-
-
-try{
-
-const response =
-await fetch(
-"/api/user/"+action,
-{
-method:"POST",
-
-headers:{
-"Content-Type":
-"application/json"
-},
-
-body:
-JSON.stringify({
-user_id:uid
-})
-}
-);
-
-
-const data =
-await response.json();
-
-
-if(data.ok){
-
-alert(
-action === "lock"
-? "🔒 User locked."
-: "🔓 User unlocked."
-);
-
-input.value="";
-
-refresh();
-
-}else{
-
-alert(
-"❌ "+data.error
-);
-
-}
-
-}catch(error){
-
-alert(
-"❌ Server error"
-);
-
-}
-
-}
-
-
-refresh();
-
-setInterval(
-refresh,
-5000
-);
+setInterval(loadStatus, 5000);
 
 </script>
 
 </body>
-                        </html>
+</html>
