@@ -1,733 +1,752 @@
-<!DOCTYPE html>
-<html lang="en">
+import os
+import time
+from collections import defaultdict
+from threading import Lock
 
-<head>
+import requests
+from dotenv import load_dotenv
+from flask import Flask, jsonify, request, render_template
 
-<meta charset="UTF-8">
+from bot.replies import generate_reply
 
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
+load_dotenv()
 
-<title>RK RAJA BOT PANEL</title>
+app = Flask(__name__)
+app.config["JSON_AS_ASCII"] = False
 
-<style>
 
-* {
-    box-sizing: border-box;
-}
+# =========================================================
+# CONFIG
+# =========================================================
 
-body {
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "change-this")
+PAGE_ACCESS_TOKEN = os.getenv("PAGE_ACCESS_TOKEN", "")
+GRAPH_API_VERSION = os.getenv("GRAPH_API_VERSION", "v23.0")
 
-    margin: 0;
+OWNER_ID = os.getenv("OWNER_ID", "")
 
-    min-height: 100vh;
+GROUP_LINK = os.getenv(
+    "GROUP_LINK",
+    "https://t.me/Akatsuki_rulex"
+)
 
-    font-family: Arial, sans-serif;
+RK_RAJA_IMAGE_URL = os.getenv(
+    "RK_RAJA_IMAGE_URL",
+    ""
+)
 
-    color: white;
+BOT_ENABLED = (
+    os.getenv("BOT_ENABLED", "true").lower() == "true"
+)
 
-    background:
-        radial-gradient(
-            circle at top,
-            #174f2b,
-            #03170b 70%
-        );
 
-    padding: 20px;
-}
+# =========================================================
+# STATE
+# =========================================================
 
-.container {
+LOCKED_USERS = set()
 
-    max-width: 900px;
+STATS = defaultdict(int)
 
-    margin: auto;
-}
+STATE_LOCK = Lock()
 
-.title {
+START_TIME = time.time()
 
-    text-align: center;
 
-    font-size: 32px;
+# =========================================================
+# LOG
+# =========================================================
 
-    font-weight: 900;
+def log(message):
+    app.logger.info(message)
 
-    animation: rgb 3s infinite;
 
-}
+# =========================================================
+# GRAPH API
+# =========================================================
 
-@keyframes rgb {
+def graph_url(path):
+    return (
+        f"https://graph.facebook.com/"
+        f"{GRAPH_API_VERSION}/"
+        f"{path.lstrip('/')}"
+    )
 
-    0% {
-        color: #00ff66;
-    }
 
-    33% {
-        color: #00ffff;
-    }
+# =========================================================
+# SEND TEXT
+# =========================================================
 
-    66% {
-        color: #ff66ff;
-    }
+def send_text(recipient_id, text):
 
-    100% {
-        color: #00ff66;
-    }
-}
+    if not PAGE_ACCESS_TOKEN:
+        log("PAGE_ACCESS_TOKEN missing.")
+        return False
 
-.subtitle {
+    try:
 
-    text-align: center;
+        response = requests.post(
+            graph_url("me/messages"),
 
-    opacity: .7;
+            params={
+                "access_token": PAGE_ACCESS_TOKEN
+            },
 
-    margin-bottom: 25px;
-}
-
-.card {
-
-    margin-bottom: 16px;
-
-    padding: 20px;
-
-    border-radius: 20px;
-
-    background:
-        rgba(20,60,35,.75);
-
-    border:
-        1px solid
-        rgba(255,255,255,.15);
-
-    backdrop-filter: blur(12px);
-
-    box-shadow:
-        0 10px 35px
-        rgba(0,0,0,.35);
-}
-
-.grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(
-            auto-fit,
-            minmax(140px,1fr)
-        );
-
-    gap: 12px;
-}
-
-.stat {
-
-    text-align: center;
-
-    padding: 15px;
-
-    border-radius: 16px;
-
-    background:
-        rgba(0,0,0,.2);
-}
-
-.label {
-
-    font-size: 13px;
-
-    opacity: .65;
-}
-
-.value {
-
-    margin-top: 7px;
-
-    font-size: 24px;
-
-    font-weight: bold;
-}
-
-.online {
-
-    color: #00ff78;
-}
-
-.buttons {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 10px;
-}
-
-button {
-
-    border: 0;
-
-    border-radius: 12px;
-
-    padding: 13px 18px;
-
-    font-weight: bold;
-
-    cursor: pointer;
-}
-
-.start {
-
-    background: #00d66b;
-
-    color: #001b0c;
-}
-
-.stop {
-
-    background: #ff465c;
-
-    color: white;
-}
-
-.lock {
-
-    background: #ffb52e;
-
-    color: #201400;
-}
-
-.unlock {
-
-    background: #36c5ff;
-
-    color: #00151d;
-}
-
-.info {
-
-    line-height: 1.7;
-
-    opacity: .9;
-}
-
-input {
-
-    width: 100%;
-
-    padding: 13px;
-
-    margin: 10px 0;
-
-    border-radius: 10px;
-
-    border: 1px solid
-        rgba(255,255,255,.2);
-
-    background:
-        rgba(0,0,0,.25);
-
-    color: white;
-
-    outline: none;
-}
-
-.tags {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 8px;
-}
-
-.tag {
-
-    padding: 9px 12px;
-
-    border-radius: 20px;
-
-    background:
-        rgba(0,255,120,.12);
-
-    border: 1px solid
-        rgba(0,255,120,.2);
-}
-
-pre {
-
-    white-space: pre-wrap;
-
-    word-break: break-word;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-<h1 class="title">
-RK RAJA BOT PANEL
-</h1>
-
-<div class="subtitle">
-Messenger Auto Reply Dashboard
-</div>
-
-
-<!-- DASHBOARD -->
-
-<div class="card">
-
-<h2>📊 LIVE DASHBOARD</h2>
-
-<div class="grid">
-
-<div class="stat">
-<div class="label">BOT</div>
-<div id="bot"
-     class="value online">
-RUNNING
-</div>
-</div>
-
-<div class="stat">
-<div class="label">SERVER</div>
-<div id="server"
-     class="value online">
-ONLINE
-</div>
-</div>
-
-<div class="stat">
-<div class="label">MESSAGES</div>
-<div id="messages"
-     class="value">
-0
-</div>
-</div>
-
-<div class="stat">
-<div class="label">REPLIES</div>
-<div id="replies"
-     class="value">
-0
-</div>
-</div>
-
-<div class="stat">
-<div class="label">USERS</div>
-<div id="users"
-     class="value">
-0
-</div>
-</div>
-
-<div class="stat">
-<div class="label">LOCKED</div>
-<div id="locked"
-     class="value">
-0
-</div>
-</div>
-
-<div class="stat">
-<div class="label">ERRORS</div>
-<div id="errors"
-     class="value">
-0
-</div>
-</div>
-
-<div class="stat">
-<div class="label">WEBHOOK</div>
-<div id="webhook"
-     class="value online">
-READY
-</div>
-</div>
-
-</div>
-
-</div>
-
-
-<!-- BOT CONTROL -->
-
-<div class="card">
-
-<h2>🤖 BOT CONTROL</h2>
-
-<div class="buttons">
-
-<button class="start"
-        onclick="botControl('start')">
-▶ START BOT
-</button>
-
-<button class="stop"
-        onclick="botControl('stop')">
-⏹ STOP BOT
-</button>
-
-</div>
-
-</div>
-
-
-<!-- USER LOCK -->
-
-<div class="card">
-
-<h2>🔒 USER MESSAGE LOCK</h2>
-
-<div class="info">
-User ID enter karke us user ke automatic replies
-LOCK/UNLOCK kar sakte ho.
-</div>
-
-<input
-    id="userId"
-    placeholder="Messenger User ID"
->
-
-<div class="buttons">
-
-<button class="lock"
-        onclick="userControl('lock')">
-🔒 LOCK USER
-</button>
-
-<button class="unlock"
-        onclick="userControl('unlock')">
-🔓 UNLOCK USER
-</button>
-
-</div>
-
-</div>
-
-
-<!-- REPLY TYPES -->
-
-<div class="card">
-
-<h2>💬 AUTO REPLY SYSTEM</h2>
-
-<div class="tags">
-
-<span class="tag">👋 Hello</span>
-<span class="tag">😂 Funny</span>
-<span class="tag">🥰 Cute</span>
-<span class="tag">❤️ Love</span>
-<span class="tag">😜 Flirty</span>
-<span class="tag">🔥 Naughty Style</span>
-<span class="tag">😎 Attitude</span>
-<span class="tag">🥀 Sad</span>
-<span class="tag">✍️ Shayari</span>
-<span class="tag">🍕 Food</span>
-<span class="tag">😴 Sleep</span>
-<span class="tag">🙏 Thanks</span>
-<span class="tag">😡 Angry</span>
-<span class="tag">👋 Bye</span>
-
-</div>
-
-</div>
-
-
-<!-- USER INFO -->
-
-<div class="card">
-
-<h2>👤 USER INFO</h2>
-
-<div class="info">
-
-User Messenger mein:
-
-<br><br>
-
-<b>/info</b>
-
-<br><br>
-
-bhejega to bot us user ka:
-
-<br>
-
-⭐ Level<br>
-✨ XP<br>
-💬 Message count<br>
-🔐 Lock status<br>
-✍️ Random shayari
-
-show karega.
-
-</div>
-
-</div>
-
-
-<!-- ACTIVITY -->
-
-<div class="card">
-
-<h2>📡 LIVE ACTIVITY</h2>
-
-<div class="info">
-
-<b>Last Message:</b>
-
-<pre id="lastMessage">
-Waiting...
-</pre>
-
-<b>Last Reply:</b>
-
-<pre id="lastReply">
-Waiting...
-</pre>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h2>👑 RK RAJA TRIGGER</h2>
-
-<div class="info">
-
-User agar <b>RK Raja</b> bolega,
-configured image + RK Raja Family message
-automatically send hoga.
-
-<br><br>
-
-https://t.me/Akatsuki_rulex
-
-</div>
-
-</div>
-
-
-</div>
-
-
-<script>
-
-let ownerKey = "";
-
-function getOwnerKey() {
-
-    if (!ownerKey) {
-
-        ownerKey = prompt(
-            "Owner ID enter karo:"
-        ) || "";
-    }
-
-    return ownerKey;
-}
-
-
-async function botControl(action) {
-
-    const key = getOwnerKey();
-
-    if (!key)
-        return;
-
-    const response =
-        await fetch(
-            "/api/bot/" + action,
-            {
-                method: "POST",
-                headers: {
-                    "X-Owner-Key": key
-                }
-            }
-        );
-
-    const data =
-        await response.json();
-
-    if (!data.ok) {
-
-        alert(
-            "❌ " +
-            (data.error || "Failed")
-        );
-
-        ownerKey = "";
-
-        return;
-    }
-
-    updateDashboard();
-}
-
-
-async function userControl(action) {
-
-    const key = getOwnerKey();
-
-    if (!key)
-        return;
-
-    const userId =
-        document.getElementById(
-            "userId"
-        ).value.trim();
-
-    if (!userId) {
-
-        alert(
-            "User ID enter karo."
-        );
-
-        return;
-    }
-
-    const response =
-        await fetch(
-            "/api/user/" + action,
-            {
-                method: "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json",
-
-                    "X-Owner-Key":
-                        key
+            json={
+                "recipient": {
+                    "id": recipient_id
                 },
 
-                body: JSON.stringify({
-                    user_id: userId
-                })
-            }
-        );
+                "messaging_type": "RESPONSE",
 
-    const data =
-        await response.json();
-
-    if (!data.ok) {
-
-        alert(
-            "❌ " +
-            (data.error || "Failed")
-        );
-
-        ownerKey = "";
-
-        return;
-    }
-
-    alert(
-        action === "lock"
-            ? "🔒 User locked"
-            : "🔓 User unlocked"
-    );
-
-    updateDashboard();
-}
-
-
-async function updateDashboard() {
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/status",
-                {
-                    cache: "no-store"
+                "message": {
+                    "text": text
                 }
-            );
+            },
 
-        const data =
-            await response.json();
+            timeout=15
+        )
 
+        if not response.ok:
 
-        document.getElementById(
-            "bot"
-        ).textContent =
-            data.status;
+            log(
+                f"Graph send error "
+                f"{response.status_code}: "
+                f"{response.text[:300]}"
+            )
 
+        return response.ok
 
-        document.getElementById(
-            "messages"
-        ).textContent =
-            data.messages_received;
+    except requests.RequestException as exc:
 
+        log(
+            f"Graph request error: {exc}"
+        )
 
-        document.getElementById(
-            "replies"
-        ).textContent =
-            data.replies_sent;
-
-
-        document.getElementById(
-            "users"
-        ).textContent =
-            data.users;
+        return False
 
 
-        document.getElementById(
-            "locked"
-        ).textContent =
-            data.locked_users;
+# =========================================================
+# SEND IMAGE
+# =========================================================
+
+def send_image(recipient_id, image_url):
+
+    if not PAGE_ACCESS_TOKEN:
+        return False
+
+    if not image_url:
+        return False
+
+    try:
+
+        response = requests.post(
+
+            graph_url("me/messages"),
+
+            params={
+                "access_token": PAGE_ACCESS_TOKEN
+            },
+
+            json={
+
+                "recipient": {
+                    "id": recipient_id
+                },
+
+                "messaging_type": "RESPONSE",
+
+                "message": {
+
+                    "attachment": {
+
+                        "type": "image",
+
+                        "payload": {
+
+                            "url": image_url,
+
+                            "is_reusable": True
+
+                        }
+
+                    }
+
+                }
+
+            },
+
+            timeout=15
+        )
+
+        if not response.ok:
+
+            log(
+                f"Image send error "
+                f"{response.status_code}: "
+                f"{response.text[:300]}"
+            )
+
+        return response.ok
+
+    except requests.RequestException as exc:
+
+        log(
+            f"Image request error: {exc}"
+        )
+
+        return False
 
 
-        document.getElementById(
-            "errors"
-        ).textContent =
-            data.errors;
+# =========================================================
+# OWNER COMMANDS
+#
+# Admin UID panel mein nahi hai.
+# OWNER_ID .env se aayega.
+# =========================================================
+
+def owner_command(sender_id, text):
+
+    if not OWNER_ID:
+        return False, None
+
+    if str(sender_id) != str(OWNER_ID):
+        return False, None
+
+    t = " ".join(
+        str(text).lower().split()
+    )
+
+    global BOT_ENABLED
 
 
-        document.getElementById(
-            "webhook"
-        ).textContent =
-            data.webhook;
+    # BOT ON
+    if t == "bot on":
+
+        BOT_ENABLED = True
+
+        return True, (
+            "🤖 BOT ONLINE 👍"
+        )
 
 
-        document.getElementById(
-            "lastMessage"
-        ).textContent =
-            data.last_message ||
-            "Waiting...";
+    # BOT OFF
+    if t == "bot off":
+
+        BOT_ENABLED = False
+
+        return True, (
+            "🛑 BOT OFF"
+        )
 
 
-        document.getElementById(
-            "lastReply"
-        ).textContent =
-            data.last_reply ||
-            "Waiting...";
+    # LOCK USER
+    if t.startswith("lock "):
 
-    }
+        uid = t.split(
+            maxsplit=1
+        )[1].strip()
 
-    catch (error) {
+        if not uid:
+            return True, "⚠️ User ID missing."
 
-        document.getElementById(
-            "server"
-        ).textContent =
-            "OFFLINE";
-    }
-}
+        LOCKED_USERS.add(uid)
+
+        return True, (
+            "🔒 User locked successfully."
+        )
 
 
-updateDashboard();
+    # UNLOCK USER
+    if t.startswith("unlock "):
 
-setInterval(
-    updateDashboard,
-    3000
-);
+        uid = t.split(
+            maxsplit=1
+        )[1].strip()
 
-</script>
+        if not uid:
+            return True, "⚠️ User ID missing."
 
-</body>
+        LOCKED_USERS.discard(uid)
 
-</html>
+        return True, (
+            "🔓 User unlocked successfully."
+        )
+
+
+    # LOCKED LIST
+    if t == "locked":
+
+        return True, (
+            f"🔒 Locked users: "
+            f"{len(LOCKED_USERS)}"
+        )
+
+
+    return False, None
+
+
+# =========================================================
+# HANDLE MESSAGE
+# =========================================================
+
+def handle_message(sender_id, text):
+
+    global BOT_ENABLED
+
+    if not BOT_ENABLED:
+        return
+
+
+    # -----------------------------------------------------
+    # LOCKED USER
+    # -----------------------------------------------------
+
+    if str(sender_id) in LOCKED_USERS:
+        log(
+            f"Ignored locked user: "
+            f"{sender_id}"
+        )
+        return
+
+
+    # -----------------------------------------------------
+    # ADMIN COMMANDS
+    # -----------------------------------------------------
+
+    handled, owner_reply = owner_command(
+        sender_id,
+        text
+    )
+
+    if handled:
+
+        if owner_reply:
+            send_text(
+                sender_id,
+                owner_reply
+            )
+
+        return
+
+
+    # -----------------------------------------------------
+    # NORMALIZE TEXT
+    # -----------------------------------------------------
+
+    t = " ".join(
+        str(text).lower().strip().split()
+    )
+
+
+    # -----------------------------------------------------
+    # USER REQUESTED STICKER MODE
+    #
+    # No automatic flooding.
+    # Actual sticker capability depends
+    # on Meta API support.
+    # -----------------------------------------------------
+
+    if t in {
+        "spam sticker",
+        "sticker spam"
+    }:
+
+        send_text(
+            sender_id,
+
+            "🎨 Sticker mode requested 😜\n"
+            "Controlled sticker/media action "
+            "can be added when your Meta app "
+            "supports the required media feature."
+        )
+
+        return
+
+
+    # -----------------------------------------------------
+    # RK RAJA TRIGGER
+    # -----------------------------------------------------
+
+    if (
+        "rk raja" in t
+        or t == "rkraja"
+    ):
+
+        if RK_RAJA_IMAGE_URL:
+
+            send_image(
+                sender_id,
+                RK_RAJA_IMAGE_URL
+            )
+
+
+        send_text(
+
+            sender_id,
+
+            "🌙᯾🙂𝐁ɽ፝֟ɵ͜͡ƙ⃟ɛ͠ɳ💔ϯ•🕊️𝐇ɘ፝֟͜͡ʌ̴ʀ⃞ʈ🩷•ϯ\n\n"
+            "Joine my gc Rk raja Family\n"
+            f"{GROUP_LINK}"
+
+        )
+
+        return
+
+
+    # -----------------------------------------------------
+    # GENERATE NORMAL REPLY
+    # -----------------------------------------------------
+
+    reply = generate_reply(text)
+
+
+    if reply:
+
+        send_text(
+            sender_id,
+            reply
+        )
+
+
+    # -----------------------------------------------------
+    # STATS
+    # -----------------------------------------------------
+
+    with STATE_LOCK:
+
+        STATS["messages"] += 1
+
+        STATS[
+            str(sender_id)
+        ] += 1
+
+
+# =========================================================
+# DASHBOARD
+# =========================================================
+
+@app.get("/")
+def index():
+
+    return render_template(
+        "index.html"
+    )
+
+
+# =========================================================
+# HEALTH
+# =========================================================
+
+@app.get("/health")
+def health():
+
+    return jsonify({
+
+        "status": "ok",
+
+        "bot_enabled":
+            BOT_ENABLED,
+
+        "uptime_seconds":
+            int(
+                time.time()
+                - START_TIME
+            )
+
+    })
+
+
+# =========================================================
+# STATUS API
+# =========================================================
+
+@app.get("/api/status")
+def status():
+
+    with STATE_LOCK:
+
+        message_count = (
+            STATS["messages"]
+        )
+
+    return jsonify({
+
+        "online": True,
+
+        "bot_enabled":
+            BOT_ENABLED,
+
+        "messages":
+            message_count,
+
+        "locked_users":
+            len(LOCKED_USERS)
+
+    })
+
+
+# =========================================================
+# START / STOP
+# =========================================================
+
+@app.post("/api/bot/<action>")
+def bot_action(action):
+
+    global BOT_ENABLED
+
+
+    if action == "start":
+
+        BOT_ENABLED = True
+
+        log(
+            "Bot started from dashboard."
+        )
+
+        return jsonify({
+
+            "ok": True,
+
+            "bot_enabled": True
+
+        })
+
+
+    if action == "stop":
+
+        BOT_ENABLED = False
+
+        log(
+            "Bot stopped from dashboard."
+        )
+
+        return jsonify({
+
+            "ok": True,
+
+            "bot_enabled": False
+
+        })
+
+
+    return jsonify({
+
+        "ok": False,
+
+        "error":
+            "unknown action"
+
+    }), 400
+
+
+# =========================================================
+# USER LOCK / UNLOCK
+# =========================================================
+
+@app.post("/api/user/<action>")
+def user_action(action):
+
+    data = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
+    uid = str(
+        data.get(
+            "user_id",
+            ""
+        )
+    ).strip()
+
+
+    if not uid:
+
+        return jsonify({
+
+            "ok": False,
+
+            "error":
+                "user_id required"
+
+        }), 400
+
+
+    if action == "lock":
+
+        LOCKED_USERS.add(uid)
+
+        return jsonify({
+
+            "ok": True,
+
+            "locked": True
+
+        })
+
+
+    if action == "unlock":
+
+        LOCKED_USERS.discard(uid)
+
+        return jsonify({
+
+            "ok": True,
+
+            "locked": False
+
+        })
+
+
+    return jsonify({
+
+        "ok": False,
+
+        "error":
+            "unknown action"
+
+    }), 400
+
+
+# =========================================================
+# META WEBHOOK VERIFY
+# =========================================================
+
+@app.route(
+    "/webhook",
+    methods=["GET"]
+)
+def webhook_verify():
+
+    mode = request.args.get(
+        "hub.mode"
+    )
+
+    token = request.args.get(
+        "hub.verify_token"
+    )
+
+    challenge = request.args.get(
+        "hub.challenge"
+    )
+
+
+    if (
+        mode == "subscribe"
+        and token == VERIFY_TOKEN
+    ):
+
+        return (
+            challenge or "",
+            200
+        )
+
+
+    return (
+        "Forbidden",
+        403
+    )
+
+
+# =========================================================
+# META WEBHOOK RECEIVE
+# =========================================================
+
+@app.route(
+    "/webhook",
+    methods=["POST"]
+)
+def webhook_receive():
+
+    payload = (
+        request.get_json(
+            silent=True
+        )
+        or {}
+    )
+
+
+    if payload.get(
+        "object"
+    ) != "page":
+
+        return (
+            "EVENT_RECEIVED",
+            200
+        )
+
+
+    for entry in payload.get(
+        "entry",
+        []
+    ):
+
+        for event in entry.get(
+            "messaging",
+            []
+        ):
+
+            sender = event.get(
+                "sender",
+                {}
+            )
+
+            sender_id = sender.get(
+                "id"
+            )
+
+            message = event.get(
+                "message",
+                {}
+            )
+
+            text = message.get(
+                "text"
+            )
+
+
+            if (
+                sender_id
+                and text
+            ):
+
+                log(
+                    f"Message from "
+                    f"{sender_id}: "
+                    f"{text}"
+                )
+
+                handle_message(
+                    sender_id,
+                    text
+                )
+
+
+    return (
+        "EVENT_RECEIVED",
+        200
+    )
+
+
+# =========================================================
+# RUN
+# =========================================================
+
+if __name__ == "__main__":
+
+    app.run(
+
+        host="0.0.0.0",
+
+        port=int(
+            os.getenv(
+                "PORT",
+                "25042"
+            )
+        ),
+
+        debug=False
+
+    )
