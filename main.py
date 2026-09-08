@@ -1,12 +1,13 @@
-from app import app
 import os
+from app import app
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", "25042"))
+    port = int(os.getenv("PORT", "25042"))
 
     print("🤖 RK RAJA BOT STARTING...")
-    print("✅ BOT IS ONLINE")
-    print("♻️ BOT WILL KEEP RUNNING")
+    print("✅ BOT ONLINE")
+    print(f"🌐 PORT: {port}")
+    print("♻️ BOT RUNNING CONTINUOUSLY...")
 
     app.run(
         host="0.0.0.0",
