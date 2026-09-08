@@ -1,30 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RK Raja Bot Dashboard</title>
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>RK Raja Bot</title>
 
 <style>
+
 * {
     box-sizing: border-box;
 }
 
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
     background: #080b14;
-    color: #fff;
+    color: white;
+    font-family: Arial, sans-serif;
 }
 
 .container {
+    width: 100%;
     max-width: 1100px;
     margin: auto;
-    padding: 20px;
+    padding: 18px;
 }
 
 h1 {
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
 
 .card {
@@ -38,8 +46,25 @@ h1 {
 .grid {
     display: grid;
     grid-template-columns:
-        repeat(auto-fit, minmax(220px, 1fr));
+        repeat(auto-fit, minmax(210px, 1fr));
     gap: 12px;
+}
+
+.stat {
+    background: #0b101c;
+    padding: 15px;
+    border-radius: 13px;
+}
+
+.stat-title {
+    color: #9ca8bf;
+    font-size: 13px;
+}
+
+.stat-value {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 5px;
 }
 
 input,
@@ -47,11 +72,11 @@ textarea,
 button {
     width: 100%;
     padding: 12px;
+    margin-top: 8px;
     border-radius: 10px;
     border: 1px solid #35415e;
     background: #080d18;
     color: white;
-    margin-top: 8px;
 }
 
 textarea {
@@ -78,9 +103,21 @@ button {
 
 .badge {
     display: inline-block;
-    padding: 7px 12px;
+    padding: 8px 14px;
     border-radius: 20px;
     background: #1b2940;
+}
+
+.small {
+    color: #9da9c2;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.warning {
+    color: #ffca70;
+    font-size: 12px;
+    margin-top: 8px;
 }
 
 table {
@@ -94,27 +131,20 @@ td {
     padding: 10px;
     border-bottom: 1px solid #283147;
     text-align: left;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .log {
     background: #080d17;
-    padding: 8px;
+    padding: 9px;
     margin: 5px 0;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 12px;
+    word-break: break-word;
 }
 
-.small {
-    color: #9da9c2;
-    font-size: 12px;
-}
-
-.warning {
-    color: #ffca70;
-    font-size: 12px;
-}
 </style>
+
 </head>
 
 <body>
@@ -122,100 +152,210 @@ td {
 <div class="container">
 
 <h1>🤖 RK Raja Bot</h1>
+
 <div class="small">
 Messenger Auto Bot Dashboard
 </div>
 
+
+<!-- STATUS -->
+
 <div class="card">
+
 <h2>🟢 Bot Status</h2>
 
 <div class="grid">
-<div>
-<span class="badge" id="status">Checking...</span>
+
+<div class="stat">
+
+<div class="stat-title">
+STATUS
 </div>
 
-<div>
-<strong>Messages</strong>
-<div id="messages">0</div>
+<div
+    class="stat-value"
+    id="status"
+>
+Checking...
 </div>
 
-<div>
-<strong>Live Users</strong>
-<div id="users">0</div>
 </div>
 
-<div>
-<strong>Uptime</strong>
-<div id="uptime">0s</div>
+
+<div class="stat">
+
+<div class="stat-title">
+MESSAGES
 </div>
+
+<div
+    class="stat-value"
+    id="messages"
+>
+0
 </div>
+
+</div>
+
+
+<div class="stat">
+
+<div class="stat-title">
+LIVE USERS
+</div>
+
+<div
+    class="stat-value"
+    id="users"
+>
+0
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div class="stat-title">
+UPTIME
+</div>
+
+<div
+    class="stat-value"
+    id="uptime"
+>
+0s
+</div>
+
+</div>
+
+</div>
+
 
 <div class="grid">
-<button class="start" onclick="botAction('start')">
+
+<button
+    class="start"
+    onclick="botAction('start')"
+>
 🟢 START BOT
 </button>
 
-<button class="stop" onclick="botAction('stop')">
+
+<button
+    class="stop"
+    onclick="botAction('stop')"
+>
 🔴 STOP BOT
 </button>
+
 </div>
+
 </div>
+
+
+<!-- ADMIN -->
 
 <div class="card">
-<h2>🤖 Bot Details</h2>
 
-<label>Bot ID</label>
-<input id="botId" readonly>
+<h2>👤 Admin UID</h2>
 
-<label>Admin ID</label>
-<input id="adminId" readonly>
+<label>
+Admin ID / UID
+</label>
+
+<input
+    id="adminId"
+    type="text"
+    placeholder="Admin UID paste karo"
+>
+
+<button
+    class="save"
+    onclick="saveAdmin()"
+>
+💾 SAVE ADMIN UID
+</button>
+
+<div class="small">
+Admin UID dashboard configuration ke liye hai.
 </div>
 
+</div>
+
+
+<!-- APPSTATE -->
+
 <div class="card">
+
 <h2>🍪 AppState / Cookies</h2>
 
 <textarea
-id="appstate"
-placeholder="AppState / Cookies paste field
-(UI/config only — not used for Facebook login)">
-</textarea>
+    id="appstate"
+    placeholder="AppState / Cookies paste field..."
+></textarea>
 
 <div class="warning">
-⚠️ This field is only a dashboard/config field.
-It is not used for personal Facebook login or session automation.
+⚠️ Ye field UI/config only hai.
+Personal Facebook login/session automation ke liye
+use nahi hota.
 </div>
+
 </div>
+
+
+<!-- FIGHT MODE -->
 
 <div class="card">
-<h2>⚔️ Fight Mode</h2>
+
+<h2>⚔️ Fight Mode File</h2>
 
 <input
-type="file"
-id="fightFile"
-accept=".json,.txt"
-onchange="selectFightFile(this)">
+    type="file"
+    id="fightFile"
+    accept=".json,.txt"
+    onchange="selectFightFile(this)"
+>
 
-<div class="small" id="fightName">
+<div
+    class="small"
+    id="fightName"
+>
 No file selected
 </div>
 
 <div class="warning">
-Only safe configuration metadata is recorded.
-Uploaded code is never executed.
-</div>
+Uploaded code execute nahi kiya jayega.
+Sirf configuration filename record hoga.
 </div>
 
+</div>
+
+
+<!-- SAVE -->
+
 <div class="card">
-<button class="save" onclick="saveConfig()">
-💾 SAVE DASHBOARD CONFIG
+
+<button
+    class="save"
+    onclick="saveConfig()"
+>
+💾 SAVE CONFIGURATION
 </button>
+
 </div>
 
+
+<!-- LIVE USERS -->
+
 <div class="card">
+
 <h2>👥 Live Users / UID</h2>
 
 <table>
+
 <thead>
+
 <tr>
 <th>UID</th>
 <th>Messages</th>
@@ -223,44 +363,77 @@ Uploaded code is never executed.
 <th>Last Seen</th>
 <th>Status</th>
 </tr>
+
 </thead>
 
 <tbody id="usersTable">
+
 <tr>
-<td colspan="5">Waiting...</td>
+<td colspan="5">
+Waiting...
+</td>
 </tr>
+
 </tbody>
+
 </table>
 
 <div class="small">
-Only users/conversation events actually supplied by the
-Messenger webhook are shown. Arbitrary Facebook group discovery
-is not performed.
-</div>
+Messenger webhook se receive hue users yahan show honge.
 </div>
 
+</div>
+
+
+<!-- LOGS -->
+
 <div class="card">
+
 <h2>📜 Live Logs</h2>
-<div id="logs"></div>
+
+<div id="logs">
+Loading...
 </div>
 
+</div>
+
+
+<!-- COMMANDS -->
+
 <div class="card">
+
 <h2>📚 Commands</h2>
 
 <div class="small">
-help • joke • love • baby • babu • sona • shona • jaan • janu<br>
-good morning • good afternoon • good evening • good night<br>
-bye • bot • RK Raja • sad • sorry • thanks
-</div>
+
+help • joke • love • baby • babu • sona • shona • jaan • janu
+
+<br>
+
+sad • bye • thanks • sorry
+
+<br>
+
+good morning • good afternoon • good evening • good night
+
+<br><br>
+
+Normal messages par bhi automatic reply milega.
+
 </div>
 
 </div>
+
+</div>
+
 
 <script>
 
 let fightFileName = "";
 
+
 function esc(value) {
+
     return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -269,124 +442,374 @@ function esc(value) {
         .replaceAll("'", "&#039;");
 }
 
+
+/* =========================================
+   LOAD STATUS
+========================================= */
+
 async function loadStatus() {
 
     try {
 
-        const r = await fetch("/api/status");
-        const d = await r.json();
+        const response =
+            await fetch("/api/status");
 
-        document.getElementById("status").textContent =
-            d.bot_enabled
+        const data =
+            await response.json();
+
+
+        document.getElementById(
+            "status"
+        ).textContent =
+            data.bot_enabled
                 ? "🟢 ONLINE"
                 : "🔴 OFFLINE";
 
-        document.getElementById("messages").textContent =
-            d.messages;
 
-        document.getElementById("users").textContent =
-            d.live_users.length;
+        document.getElementById(
+            "messages"
+        ).textContent =
+            data.messages;
 
-        document.getElementById("uptime").textContent =
-            d.uptime + "s";
 
-        document.getElementById("botId").value =
-            d.bot_id || "";
+        document.getElementById(
+            "users"
+        ).textContent =
+            data.live_users.length;
 
-        document.getElementById("adminId").value =
-            d.admin_id || "";
 
-        renderUsers(d.live_users);
-        renderLogs(d.logs);
+        document.getElementById(
+            "uptime"
+        ).textContent =
+            data.uptime + "s";
 
-    } catch (e) {
 
-        document.getElementById("status").textContent =
-            "🔴 SERVER ERROR";
+        document.getElementById(
+            "adminId"
+        ).value =
+            data.admin_id || "";
+
+
+        renderUsers(
+            data.live_users
+        );
+
+
+        renderLogs(
+            data.logs
+        );
+
+
+    } catch (error) {
+
+        document.getElementById(
+            "status"
+        ).textContent =
+            "🔴 ERROR";
+
     }
+
 }
+
+
+/* =========================================
+   USERS
+========================================= */
 
 function renderUsers(users) {
 
     const table =
-        document.getElementById("usersTable");
+        document.getElementById(
+            "usersTable"
+        );
+
 
     if (!users.length) {
 
         table.innerHTML =
-            '<tr><td colspan="5">No live users</td></tr>';
+            `
+            <tr>
+                <td colspan="5">
+                    No live users
+                </td>
+            </tr>
+            `;
 
         return;
     }
 
-    table.innerHTML = users.map(u => `
-        <tr>
-            <td>${esc(u.uid)}</td>
-            <td>${esc(u.messages)}</td>
-            <td>${esc(u.last_message)}</td>
-            <td>${esc(u.last_seen)}</td>
-            <td>${esc(u.status)}</td>
-        </tr>
-    `).join("");
+
+    table.innerHTML =
+        users.map(user => `
+
+            <tr>
+
+                <td>
+                    ${esc(user.uid)}
+                </td>
+
+                <td>
+                    ${esc(user.messages)}
+                </td>
+
+                <td>
+                    ${esc(user.last_message)}
+                </td>
+
+                <td>
+                    ${esc(user.last_seen)}
+                </td>
+
+                <td>
+                    ${esc(user.status)}
+                </td>
+
+            </tr>
+
+        `).join("");
+
 }
+
+
+/* =========================================
+   LOGS
+========================================= */
 
 function renderLogs(logs) {
 
-    document.getElementById("logs").innerHTML =
-        logs.map(x => `
+    const box =
+        document.getElementById(
+            "logs"
+        );
+
+
+    if (!logs.length) {
+
+        box.innerHTML =
+            '<div class="small">No logs</div>';
+
+        return;
+    }
+
+
+    box.innerHTML =
+        logs.map(log => `
+
             <div class="log">
-                [${esc(x.time)}] ${esc(x.text)}
+
+                [${esc(log.time)}]
+
+                ${esc(log.text)}
+
             </div>
+
         `).join("");
+
 }
+
+
+/* =========================================
+   START / STOP
+========================================= */
 
 async function botAction(action) {
 
-    await fetch("/api/bot/" + action, {
-        method: "POST"
-    });
+    try {
 
-    loadStatus();
+        await fetch(
+            "/api/bot/" + action,
+            {
+                method: "POST"
+            }
+        );
+
+        await loadStatus();
+
+    } catch (error) {
+
+        alert(
+            "❌ Server error"
+        );
+
+    }
+
 }
+
+
+/* =========================================
+   ADMIN UID
+========================================= */
+
+async function saveAdmin() {
+
+    const adminId =
+        document
+            .getElementById("adminId")
+            .value
+            .trim();
+
+
+    if (!adminId) {
+
+        alert(
+            "⚠️ Admin UID paste karo"
+        );
+
+        return;
+    }
+
+
+    const response =
+        await fetch(
+            "/api/admin",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    admin_id: adminId
+                })
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (data.ok) {
+
+        alert(
+            "✅ Admin UID saved"
+        );
+
+        loadStatus();
+
+    } else {
+
+        alert(
+            "❌ " +
+            (data.error || "Save failed")
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   FIGHT FILE
+========================================= */
 
 function selectFightFile(input) {
 
     if (!input.files.length) {
+
         fightFileName = "";
-        document.getElementById("fightName").textContent =
+
+        document.getElementById(
+            "fightName"
+        ).textContent =
             "No file selected";
+
         return;
     }
 
-    fightFileName = input.files[0].name;
 
-    document.getElementById("fightName").textContent =
-        "Selected: " + fightFileName;
+    fightFileName =
+        input.files[0].name;
+
+
+    document.getElementById(
+        "fightName"
+    ).textContent =
+        "Selected: " +
+        fightFileName;
+
 }
+
+
+/* =========================================
+   SAVE CONFIG
+========================================= */
 
 async function saveConfig() {
 
     const appstate =
-        document.getElementById("appstate").value;
+        document
+            .getElementById("appstate")
+            .value;
 
-    await fetch("/api/config", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            appstate: appstate,
-            fight_file: fightFileName
-        })
-    });
 
-    alert("✅ Dashboard configuration saved");
-    loadStatus();
+    try {
+
+        const response =
+            await fetch(
+                "/api/config",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        appstate:
+                            appstate,
+
+                        fight_file:
+                            fightFileName
+
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.ok) {
+
+            alert(
+                "✅ Configuration saved"
+            );
+
+        } else {
+
+            alert(
+                "❌ Save failed"
+            );
+
+        }
+
+    } catch (error) {
+
+        alert(
+            "❌ Server error"
+        );
+
+    }
+
 }
+
+
+/* =========================================
+   AUTO REFRESH
+========================================= */
 
 loadStatus();
 
-setInterval(loadStatus, 5000);
+setInterval(
+    loadStatus,
+    5000
+);
 
 </script>
 
